@@ -27,6 +27,12 @@ impl Fr {
     pub fn interpret(buf: &[u8; 64]) -> Fr {
         Fr(fields::Fr::interpret(buf))
     }
+    pub fn from_slice(slice: &[u8]) -> Result<Self, FieldError> {
+        arith::U256::from_slice(slice)
+            .map_err(|_| FieldError::InvalidSliceLength) // todo: maybe more sensful error handling
+            .and_then(|x| fields::Fr::new(x).ok_or(FieldError::NotMember))
+            .map(|x| Fr(x))
+    }    
 }
 
 impl Add<Fr> for Fr {
@@ -53,6 +59,12 @@ impl Mul for Fr {
     fn mul(self, other: Fr) -> Fr { Fr(self.0 * other.0) }
 }
 
+#[derive(Debug)]
+pub enum FieldError {
+    InvalidSliceLength,
+    NotMember,
+}
+
 #[derive(Copy, Clone, PartialEq, Eq, RustcDecodable, RustcEncodable)]
 #[repr(C)]
 pub struct Fq(fields::Fq);
@@ -67,6 +79,12 @@ impl Fq {
     pub fn is_zero(&self) -> bool { self.0.is_zero() }
     pub fn interpret(buf: &[u8; 64]) -> Fq {
         Fq(fields::Fq::interpret(buf))
+    }
+    pub fn from_slice(slice: &[u8]) -> Result<Self, FieldError> {
+        arith::U256::from_slice(slice)
+            .map_err(|_| FieldError::InvalidSliceLength) // todo: maybe more sensful error handling
+            .and_then(|x| fields::Fq::new(x).ok_or(FieldError::NotMember))
+            .map(|x| Fq(x))
     }
 }
 
