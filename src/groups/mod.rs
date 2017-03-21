@@ -40,9 +40,68 @@ pub struct G<P: GroupParams> {
     z: P::Base
 }
 
+impl<P: GroupParams> G<P> {
+    pub fn new(x: P::Base, y: P::Base, z: P::Base) -> Self {
+        G {
+            x: x,
+            y: y,
+            z: z,
+        }
+    }
+
+    pub fn x(&self) -> &P::Base {
+        &self.x
+    }
+
+    pub fn x_mut(&mut self) -> &mut P::Base {
+        &mut self.x
+    }
+
+    pub fn y(&self) -> &P::Base {
+        &self.y
+    }
+
+    pub fn y_mut(&mut self) -> &mut P::Base {
+        &mut self.y
+    }    
+
+    pub fn z(&self) -> &P::Base {
+        &self.z
+    }
+
+    pub fn z_mut(&mut self) -> &mut P::Base {
+        &mut self.z
+    }    
+}
+
 pub struct AffineG<P: GroupParams> {
     x: P::Base,
     y: P::Base
+}
+
+impl<P: GroupParams> AffineG<P> {
+    pub fn new(x: P::Base, y: P::Base) -> Self {
+        AffineG {
+            x: x,
+            y: y,
+        }
+    }
+
+    pub fn x(&self) -> &P::Base {
+        &self.x
+    }
+
+    pub fn x_mut(&mut self) -> &mut P::Base {
+        &mut self.x
+    }
+
+    pub fn y(&self) -> &P::Base {
+        &self.y
+    }
+
+    pub fn y_mut(&mut self) -> &mut P::Base {
+        &mut self.y
+    }
 }
 
 impl<P: GroupParams> PartialEq for AffineG<P> {
@@ -68,6 +127,7 @@ impl<P: GroupParams> Clone for G<P> {
         }
     }
 }
+
 impl<P: GroupParams> Copy for G<P> {}
 
 impl<P: GroupParams> Clone for AffineG<P> {
@@ -78,6 +138,7 @@ impl<P: GroupParams> Clone for AffineG<P> {
         }
     }
 }
+
 impl<P: GroupParams> Copy for AffineG<P> {}
 
 impl<P: GroupParams> PartialEq for G<P> {
@@ -363,6 +424,8 @@ impl GroupParams for G1Params {
 }
 
 pub type G1 = G<G1Params>;
+
+pub type AffineG1 = AffineG<G1Params>;
 
 pub struct G2Params;
 
@@ -816,4 +879,19 @@ fn test_binlinearity() {
         assert!(a != Fq12::one());
         assert_eq!((a.pow(t)) * a, Fq12::one());
     }
+}
+
+#[test]
+fn internals() {
+    let test_p = G1::one();
+
+    let val = G1::new(
+        test_p.x().clone(),
+        test_p.y().clone(),
+        test_p.z().clone(),
+    );
+
+    let affine = val.to_affine().expect("There should be affine coords for (0, 0)");
+
+    assert_eq!(affine.x(), &Fq::one());
 }

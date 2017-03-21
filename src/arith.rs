@@ -149,7 +149,7 @@ impl Decodable for U256 {
             buf[i] = try!(s.read_u8());
         }
 
-        U256::from_slice(&buf).map_err(|e| s.error("Invalid input length; Also unreachable;"))  
+        U256::from_slice(&buf).map_err(|_| s.error("Invalid input length; Also unreachable;"))  
     }
 }
 

@@ -53,6 +53,47 @@ impl Mul for Fr {
     fn mul(self, other: Fr) -> Fr { Fr(self.0 * other.0) }
 }
 
+#[derive(Copy, Clone, PartialEq, Eq, RustcDecodable, RustcEncodable)]
+#[repr(C)]
+pub struct Fq(fields::Fq);
+
+impl Fq {
+    pub fn zero() -> Self { Fq(fields::Fq::zero()) }
+    pub fn one() -> Self { Fq(fields::Fq::one()) }
+    pub fn random<R: Rng>(rng: &mut R) -> Self { Fq(fields::Fq::random(rng)) }
+    pub fn pow(&self, exp: Fq) -> Self { Fq(self.0.pow(exp.0)) }
+    pub fn from_str(s: &str) -> Option<Self> { fields::Fq::from_str(s).map(|e| Fq(e)) }
+    pub fn inverse(&self) -> Option<Self> { self.0.inverse().map(|e| Fq(e)) }
+    pub fn is_zero(&self) -> bool { self.0.is_zero() }
+    pub fn interpret(buf: &[u8; 64]) -> Fq {
+        Fq(fields::Fq::interpret(buf))
+    }
+}
+
+impl Add<Fq> for Fq {
+    type Output = Fq;
+
+    fn add(self, other: Fq) -> Fq { Fq(self.0 + other.0) }
+}
+
+impl Sub<Fq> for Fq {
+    type Output = Fq;
+
+    fn sub(self, other: Fq) -> Fq { Fq(self.0 - other.0) }
+}
+
+impl Neg for Fq {
+    type Output = Fq;
+
+    fn neg(self) -> Fq { Fq(-self.0) }
+}
+
+impl Mul for Fq {
+    type Output = Fq;
+
+    fn mul(self, other: Fq) -> Fq { Fq(self.0 * other.0) }
+}
+
 pub trait Group:
         rustc_serialize::Encodable +
         rustc_serialize::Decodable +
@@ -79,6 +120,36 @@ pub trait Group:
 #[derive(Copy, Clone, PartialEq, Eq, RustcDecodable, RustcEncodable)]
 #[repr(C)]
 pub struct G1(groups::G1);
+
+impl G1 {
+    pub fn new(x: Fq, y: Fq, z: Fq) -> Self {
+        G1(groups::G1::new(x.0, y.0, z.0))
+    }
+
+    pub fn x(&self) -> Fq {
+        Fq(self.0.x().clone())
+    }
+
+    pub fn set_x(&mut self, x: Fq) {
+        *self.0.x_mut() = x.0
+    }
+
+    pub fn y(&self) -> Fq {
+        Fq(self.0.y().clone())
+    }
+
+    pub fn set_y(&mut self, y: Fq) {
+        *self.0.y_mut() = y.0
+    }    
+
+    pub fn z(&self) -> Fq {
+        Fq(self.0.z().clone())
+    }
+
+    pub fn set_z(&mut self, z: Fq) {
+        *self.0.z_mut() = z.0
+    }        
+}
 
 impl Group for G1 {
     fn zero() -> Self { G1(groups::G1::zero()) }
@@ -117,6 +188,42 @@ impl Mul<Fr> for G1 {
     type Output = G1;
 
     fn mul(self, other: Fr) -> G1 { G1(self.0 * other.0) }
+}
+
+#[derive(Copy, Clone, PartialEq, Eq, RustcDecodable, RustcEncodable)]
+#[repr(C)]
+pub struct AffineG1(groups::AffineG1);
+
+impl AffineG1 {
+    pub fn new(x: Fq, y: Fq) -> Self {
+        AffineG1(groups::AffineG1::new(x.0, y.0))
+    }
+
+    pub fn x(&self) -> Fq {
+        Fq(self.0.x().clone())
+    }
+
+    pub fn set_x(&mut self, x: Fq) {
+        *self.0.x_mut() = x.0
+    }
+
+    pub fn y(&self) -> Fq {
+        Fq(self.0.y().clone())
+    }
+
+    pub fn set_y(&mut self, y: Fq) {
+        *self.0.y_mut() = y.0
+    }    
+
+    pub fn from_jacobian(g1: G1) -> Option<Self> {
+        g1.0.to_affine().map(|x| AffineG1(x))
+    }
+}
+
+impl From<AffineG1> for G1 {
+    fn from(affine: AffineG1) -> Self {
+        G1(affine.0.to_jacobian())
+    }
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, RustcDecodable, RustcEncodable)]

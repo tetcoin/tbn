@@ -75,6 +75,7 @@ macro_rules! field_impl {
 
             /// Returns the modulus
             #[inline]
+            #[allow(dead_code)]
             pub fn modulus() -> U256 {
                 U256($modulus)
             }
