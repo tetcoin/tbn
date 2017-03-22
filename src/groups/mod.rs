@@ -79,11 +79,32 @@ pub struct AffineG<P: GroupParams> {
     y: P::Base
 }
 
+pub enum Error {
+    NotOnCurve,
+    NotInSubgroup,
+}
+
 impl<P: GroupParams> AffineG<P> {
-    pub fn new(x: P::Base, y: P::Base) -> Self {
-        AffineG {
-            x: x,
-            y: y,
+    pub fn new(x: P::Base, y: P::Base) -> Result<Self, Error> {
+        if y.squared() == (x.squared() * x) + P::coeff_b() {
+            if P::check_order() {
+                let p: G<P> = G {
+                    x: x,
+                    y: y,
+                    z: P::Base::one()
+                };
+
+                if (p * (-Fr::one())) + p != G::zero() {
+                    return Err(Error::NotInSubgroup)
+                }
+            }
+
+            Ok(AffineG {
+                x: x,
+                y: y
+            })
+        } else {
+            Err(Error::NotOnCurve)
         }
     }
 
@@ -241,27 +262,12 @@ impl<P: GroupParams> Decodable for AffineG<P> {
         let x = try!(P::Base::decode(s));
         let y = try!(P::Base::decode(s));
 
-        // y^2 = x^3 + b
-        if y.squared() == (x.squared() * x) + P::coeff_b() {
-            if P::check_order() {
-                let p: G<P> = G {
-                    x: x,
-                    y: y,
-                    z: P::Base::one()
-                };
-
-                if (p * (-Fr::one())) + p != G::zero() {
-                    return Err(s.error("point is not in the subgroup"))
-                }
+        Self::new(x, y).map_err(|e| {
+            match e {
+                Error::NotOnCurve => s.error("point is not on the curve"),
+                Error::NotInSubgroup => s.error("point is not in the subgroup"),
             }
-
-            Ok(AffineG {
-                x: x,
-                y: y
-            })
-        } else {
-            Err(s.error("point is not on the curve"))
-        }
+        })
     }
 }
 

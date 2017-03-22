@@ -68,6 +68,8 @@ pub enum FieldError {
     NotMember,
 }
 
+pub use groups::Error as GroupError;
+
 #[derive(Copy, Clone, PartialEq, Eq, RustcDecodable, RustcEncodable)]
 #[repr(C)]
 pub struct Fq(fields::Fq);
@@ -219,8 +221,8 @@ impl Mul<Fr> for G1 {
 pub struct AffineG1(groups::AffineG1);
 
 impl AffineG1 {
-    pub fn new(x: Fq, y: Fq) -> Self {
-        AffineG1(groups::AffineG1::new(x.0, y.0))
+    pub fn new(x: Fq, y: Fq) -> Result<Self, GroupError> {
+        Ok(AffineG1(groups::AffineG1::new(x.0, y.0)?))
     }
 
     pub fn x(&self) -> Fq {
