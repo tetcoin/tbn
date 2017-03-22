@@ -12,7 +12,7 @@ use groups::GroupElement;
 use std::ops::{Add, Sub, Mul, Neg};
 use rand::Rng;
 
-#[derive(Copy, Clone, PartialEq, Eq, RustcDecodable, RustcEncodable)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, RustcDecodable, RustcEncodable)]
 #[repr(C)]
 pub struct Fr(fields::Fr);
 
@@ -70,7 +70,7 @@ pub enum FieldError {
 
 pub use groups::Error as GroupError;
 
-#[derive(Copy, Clone, PartialEq, Eq, RustcDecodable, RustcEncodable)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, RustcDecodable, RustcEncodable)]
 #[repr(C)]
 pub struct Fq(fields::Fq);
 

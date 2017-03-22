@@ -901,3 +901,15 @@ fn internals() {
 
     assert_eq!(affine.x(), &Fq::one());
 }
+
+#[test]
+fn affine_fail() {
+    let res = AffineG1::new(Fq::one(), Fq::one());
+    assert!(res.is_err(), "Affine initialization should fail because the point is not on curve");
+}
+
+#[test]
+fn affine_ok() {
+    let res = AffineG1::new(Fq::one(), G1Params::coeff_b());
+    assert!(res.is_err(), "Affine initialization should be ok because the point is on the curve");    
+}
