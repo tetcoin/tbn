@@ -1,6 +1,6 @@
 [package]
 name = "bn"
-version = "0.4.2"
+version = "0.4.3"
 authors = ["Sean Bowe <ewillbefull@gmail.com>"]
 description = "Pairing cryptography with the Barreto-Naehrig curve"
 keywords = ["pairing","crypto","cryptography"]
@@ -13,11 +13,11 @@ license = "MIT OR Apache-2.0"
 name = "api"
 
 [dependencies]
-rand = "~0.3.14"
-rustc-serialize = "~0.3.19"
-byteorder = "~0.5.3"
+rand = "0.3"
+rustc-serialize = "0.3"
+byteorder = "1.0"
 
 [dev-dependencies.bincode]
-version = "~0.6.0"
+version = "0.6"
 default-features = false
 features = ["rustc-serialize"]
