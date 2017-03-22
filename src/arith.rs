@@ -195,6 +195,16 @@ impl U256 {
         Ok(U256(n))
     }
 
+    pub fn to_big_endian(&self, s: &mut [u8]) -> Result<(), Error> {
+        if s.len() != 32 { return Err(Error::InvalidLength { expected: 32, actual: s.len() }); }
+
+        for (l, i) in (0..4).rev().zip((0..4).map(|i| i * 8)) {
+            BigEndian::write_u64(&mut s[i..], self.0[l]);
+        }        
+
+        Ok(())
+    }
+
     #[inline]
     pub fn zero() -> U256 {
         U256([0, 0, 0, 0])
@@ -538,6 +548,21 @@ fn from_slice() {
 
     let num = U256::from_slice(&s).expect("U256 should initialize ok from slice in `from_slice` test");
     assert_eq!(num, tst);
+}
+
+#[test]
+fn to_big_endian() {
+    let num = U256::one();
+    let mut s = [0u8; 32];
+
+    num.to_big_endian(&mut s).expect("U256 should convert to bytes ok in `to_big_endian` test");
+    assert_eq!(
+        s,
+        [
+            0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8,
+            0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 1u8,
+        ]
+    );
 }
 
 #[test]

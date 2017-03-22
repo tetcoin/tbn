@@ -32,7 +32,10 @@ impl Fr {
             .map_err(|_| FieldError::InvalidSliceLength) // todo: maybe more sensful error handling
             .and_then(|x| fields::Fr::new(x).ok_or(FieldError::NotMember))
             .map(|x| Fr(x))
-    }    
+    }
+    pub fn to_big_endian(&self, slice: &mut [u8]) -> Result<(), FieldError> {
+        self.0.raw().to_big_endian(slice).map_err(|_| FieldError::InvalidSliceLength)
+    }
 }
 
 impl Add<Fr> for Fr {
@@ -86,6 +89,9 @@ impl Fq {
             .and_then(|x| fields::Fq::new(x).ok_or(FieldError::NotMember))
             .map(|x| Fq(x))
     }
+    pub fn to_big_endian(&self, slice: &mut [u8]) -> Result<(), FieldError> {
+        self.0.raw().to_big_endian(slice).map_err(|_| FieldError::InvalidSliceLength)
+    }    
 }
 
 impl Add<Fq> for Fq {

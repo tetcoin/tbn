@@ -79,6 +79,10 @@ macro_rules! field_impl {
             pub fn modulus() -> U256 {
                 U256($modulus)
             }
+
+            pub fn raw(&self) -> &U256 {
+                &self.0
+            }
         }
 
         impl FieldElement for $name {
