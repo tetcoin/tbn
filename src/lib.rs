@@ -120,6 +120,23 @@ impl Mul for Fq {
     fn mul(self, other: Fq) -> Fq { Fq(self.0 * other.0) }
 }
 
+pub struct Fq2(fields::Fq2);
+
+impl Fq2 {
+    pub fn one() -> Fq2 {
+        Fq2(fields::Fq2::one())
+    }
+
+    pub fn zero() -> Fq2 {
+        Fq2(fields::Fq2::zero())
+    }    
+
+    /// Initalizes new F_q2(a + bi, a is real coeff, b is imaginary)
+    pub fn new(a: Fq, b: Fq) -> Fq2 {
+        Fq2(fields::Fq2::new(a.0, b.0))
+    }
+}
+
 pub trait Group:
         rustc_serialize::Encodable +
         rustc_serialize::Decodable +
@@ -256,6 +273,36 @@ impl From<AffineG1> for G1 {
 #[repr(C)]
 pub struct G2(groups::G2);
 
+impl G2 {
+    pub fn new(x: Fq2, y: Fq2, z: Fq2) -> Self {
+        G2(groups::G2::new(x.0, y.0, z.0))
+    }
+
+    pub fn x(&self) -> Fq2 {
+        Fq2(self.0.x().clone())
+    }
+
+    pub fn set_x(&mut self, x: Fq2) {
+        *self.0.x_mut() = x.0
+    }
+
+    pub fn y(&self) -> Fq2 {
+        Fq2(self.0.y().clone())
+    }
+
+    pub fn set_y(&mut self, y: Fq2) {
+        *self.0.y_mut() = y.0
+    }    
+
+    pub fn z(&self) -> Fq2 {
+        Fq2(self.0.z().clone())
+    }
+
+    pub fn set_z(&mut self, z: Fq2) {
+        *self.0.z_mut() = z.0
+    }        
+}
+
 impl Group for G2 {
     fn zero() -> Self { G2(groups::G2::zero()) }
     fn one() -> Self { G2(groups::G2::one()) }
@@ -313,4 +360,40 @@ impl Mul<Gt> for Gt {
 
 pub fn pairing(p: G1, q: G2) -> Gt {
     Gt(groups::pairing(&p.0, &q.0))
+}
+
+#[derive(Copy, Clone, PartialEq, Eq, RustcDecodable, RustcEncodable)]
+#[repr(C)]
+pub struct AffineG2(groups::AffineG2);
+
+impl AffineG2 {
+    pub fn new(x: Fq2, y: Fq2) -> Result<Self, GroupError> {
+        Ok(AffineG2(groups::AffineG2::new(x.0, y.0)?))
+    }
+
+    pub fn x(&self) -> Fq2 {
+        Fq2(self.0.x().clone())
+    }
+
+    pub fn set_x(&mut self, x: Fq2) {
+        *self.0.x_mut() = x.0
+    }
+
+    pub fn y(&self) -> Fq2 {
+        Fq2(self.0.y().clone())
+    }
+
+    pub fn set_y(&mut self, y: Fq2) {
+        *self.0.y_mut() = y.0
+    }    
+
+    pub fn from_jacobian(g2: G2) -> Option<Self> {
+        g2.0.to_affine().map(|x| AffineG2(x))
+    }
+}
+
+impl From<AffineG2> for G2 {
+    fn from(affine: AffineG2) -> Self {
+        G2(affine.0.to_jacobian())
+    }
 }
