@@ -79,6 +79,7 @@ pub struct AffineG<P: GroupParams> {
     y: P::Base
 }
 
+#[derive(Debug)]
 pub enum Error {
     NotOnCurve,
     NotInSubgroup,
@@ -465,6 +466,8 @@ impl GroupParams for G2Params {
 }
 
 pub type G2 = G<G2Params>;
+
+pub type AffineG2 = AffineG<G2Params>;
 
 #[cfg(test)]
 mod tests;
@@ -858,6 +861,34 @@ fn test_reduced_pairing() {
     );
 
     assert_eq!(expected, gt);
+}
+
+#[test]
+fn predefined_pair() {
+    let g1 = AffineG1::new(
+        Fq::from_str("1").expect("Fq(1) should exist"), 
+        Fq::from_str("2").expect("Fq(2) should exist"),
+    ).expect("Point (1,2) should exist in G1").to_jacobian();
+
+    let g2 = AffineG2::new(
+        Fq2::new(
+            Fq::from_str("10857046999023057135944570762232829481370756359578518086990519993285655852781")
+                .expect("a-coeff of g2 x generator is of the right order"), 
+            Fq::from_str("11559732032986387107991004021392285783925812861821192530917403151452391805634")
+                .expect("b-coeff of g2 x generator is of the right order"), 
+        ),
+        Fq2::new(
+            Fq::from_str("8495653923123431417604973247489272438418190587263600148770280649306958101930")
+                .expect("a-coeff of g2 y generator is of the right order"), 
+            Fq::from_str("4082367875863433681332203403145435568316851327593401208105741076214120093531")
+                .expect("b-coeff of g2 y generator is of the right order"), 
+        ),
+    ).expect("Point(11559732032986387107991004021392285783925812861821192530917403151452391805634 * i + 10857046999023057135944570762232829481370756359578518086990519993285655852781, 4082367875863433681332203403145435568316851327593401208105741076214120093531 * i + 8495653923123431417604973247489272438418190587263600148770280649306958101930) is a valid generator for G2")
+        .to_jacobian();
+
+    let p = pairing(&g1, &g2);
+
+    assert!(!p.is_zero());
 }
 
 #[test]
