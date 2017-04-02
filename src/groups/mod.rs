@@ -948,3 +948,11 @@ fn affine_ok() {
     let res = AffineG1::new(Fq::one(), G1Params::coeff_b());
     assert!(res.is_err(), "Affine initialization should be ok because the point is on the curve");    
 }
+
+fn test_y_at_point_at_infinity() {
+    assert!(G1::zero().y == Fq::one());
+    assert!((-G1::zero()).y == Fq::one());
+
+    assert!(G2::zero().y == Fq2::one());
+    assert!((-G2::zero()).y == Fq2::one());
+}
