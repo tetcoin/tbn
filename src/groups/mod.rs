@@ -383,10 +383,14 @@ impl<P: GroupParams> Neg for G<P> {
     type Output = G<P>;
 
     fn neg(self) -> G<P> {
-        G {
-            x: self.x,
-            y: -self.y,
-            z: self.z
+        if self.is_zero() {
+            self
+        } else {
+            G {
+                x: self.x,
+                y: -self.y,
+                z: self.z
+            }
         }
     }
 }
@@ -943,4 +947,12 @@ fn affine_fail() {
 fn affine_ok() {
     let res = AffineG1::new(Fq::one(), G1Params::coeff_b());
     assert!(res.is_err(), "Affine initialization should be ok because the point is on the curve");    
+}
+
+fn test_y_at_point_at_infinity() {
+    assert!(G1::zero().y == Fq::one());
+    assert!((-G1::zero()).y == Fq::one());
+
+    assert!(G2::zero().y == Fq2::one());
+    assert!((-G2::zero()).y == Fq2::one());
 }
