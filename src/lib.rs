@@ -30,7 +30,7 @@ impl Fr {
     pub fn from_slice(slice: &[u8]) -> Result<Self, FieldError> {
         arith::U256::from_slice(slice)
             .map_err(|_| FieldError::InvalidSliceLength) // todo: maybe more sensful error handling
-            .and_then(|x| fields::Fr::new(x).ok_or(FieldError::NotMember))
+            .and_then(|x| fields::Fr::new_mul_factor(x).ok_or(FieldError::NotMember))
             .map(|x| Fr(x))
     }
     pub fn to_big_endian(&self, slice: &mut [u8]) -> Result<(), FieldError> {
