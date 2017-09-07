@@ -80,6 +80,12 @@ macro_rules! field_impl {
                 U256($modulus)
             }
 
+            #[inline]
+            #[allow(dead_code)]
+            pub fn inv(&self) -> u64 {
+                $inv
+            }
+
             pub fn raw(&self) -> &U256 {
                 &self.0
             }

@@ -92,8 +92,11 @@ impl Fq {
             .map(|x| Fq(x))
     }
     pub fn to_big_endian(&self, slice: &mut [u8]) -> Result<(), FieldError> {
-        self.0.raw().to_big_endian(slice).map_err(|_| FieldError::InvalidSliceLength)
-    }    
+        let mut a: arith::U256 = self.0.into();
+        // convert from Montgomery representation
+        a.mul(&fields::Fq::one().raw(), &fields::Fq::modulus(), self.0.inv());
+        a.to_big_endian(slice).map_err(|_| FieldError::InvalidSliceLength)
+    }
 }
 
 impl Add<Fq> for Fq {
