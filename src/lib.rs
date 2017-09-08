@@ -2,7 +2,7 @@ extern crate rand;
 extern crate rustc_serialize;
 extern crate byteorder;
 
-mod arith;
+pub mod arith;
 mod fields;
 mod groups;
 
