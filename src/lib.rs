@@ -138,6 +138,10 @@ impl Fq2 {
     pub fn new(a: Fq, b: Fq) -> Fq2 {
         Fq2(fields::Fq2::new(a.0, b.0))
     }
+
+    pub fn is_zero(&self) -> bool {
+        self.0.is_zero()
+    }
 }
 
 pub trait Group:
