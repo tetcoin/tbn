@@ -949,6 +949,7 @@ fn affine_ok() {
     assert!(res.is_err(), "Affine initialization should be ok because the point is on the curve");    
 }
 
+#[test]
 fn test_y_at_point_at_infinity() {
     assert!(G1::zero().y == Fq::one());
     assert!((-G1::zero()).y == Fq::one());
