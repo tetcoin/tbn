@@ -17,17 +17,15 @@ macro_rules! benchmark(
             let $rng = &mut rand::thread_rng();
             let $input: Vec<_> = (0..SAMPLES).map(|_| $pre).collect();
 
-            b.bench_n(SAMPLES as u64, |b| {
-                let mut c = 0;
+            let mut c = 0;
 
-                b.iter(|| {
-                    c += 1;
+            b.iter(|| {
+                c += 1;
 
-                    let $input = &$input[c % SAMPLES];
+                let $input = &$input[c % SAMPLES];
 
-                    $post
-                })
-            })
+                $post
+            });
         }
     )
 );

@@ -1,4 +1,6 @@
 extern crate byteorder;
+#[macro_use]
+extern crate crunchy;
 extern crate rand;
 #[cfg(feature = "rustc-serialize")]
 extern crate rustc_serialize;

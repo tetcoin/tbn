@@ -22,20 +22,30 @@ impl U512 {
     pub fn from(c1: &U256, c0: &U256, modulo: &U256) -> U512 {
         let mut res = [0; 8];
 
-        for (i, xi) in c1.0.iter().enumerate() {
-            mac_digit(&mut res[i..], &modulo.0, *xi);
+        debug_assert_eq!(c1.0.len(), 4);
+        unroll! {
+            for i in 0..4 {
+                mac_digit(i, &mut res, &modulo.0, c1.0[i]);
+            }
         }
 
-        let mut c0_iter = c0.0.iter();
         let mut carry = 0;
 
-        for ai in res.iter_mut() {
-            if let Some(bi) = c0_iter.next() {
-                *ai = adc(*ai, *bi, &mut carry);
-            } else if carry != 0 {
-                *ai = adc(*ai, 0, &mut carry);
-            } else {
-                break;
+        debug_assert_eq!(res.len(), 8);
+        unroll! {
+            for i in 0..4 {
+                res[i] = adc(res[i], c0.0[i], &mut carry);
+            }
+        }
+
+        unroll! {
+            for i in 0..4 {
+                let (a1, a0) = split_u64(res[i + 4]);
+                let (c, r0) = split_u64(a0 + carry);
+                let (c, r1) = split_u64(a1 + c);
+                carry = c;
+
+                res[i + 4] = combine_u64(r1, r0);
             }
         }
 
@@ -464,7 +474,9 @@ fn sub_noborrow(a: &mut [u64; 4], b: &[u64; 4]) {
     debug_assert!(0 == borrow);
 }
 
-fn mac_digit(acc: &mut [u64], b: &[u64], c: u64) {
+// TODO: Make `from_index` a const param
+#[inline(always)]
+fn mac_digit(from_index: usize, acc: &mut [u64; 8], b: &[u64; 4], c: u64) {
     #[inline]
     fn mac_with_carry(a: u64, b: u64, c: u64, carry: &mut u64) -> u64 {
         let (b_hi, b_lo) = split_u64(b);
@@ -475,7 +487,8 @@ fn mac_digit(acc: &mut [u64], b: &[u64], c: u64) {
         let (x_hi, x_lo) = split_u64(b_lo * c_lo + a_lo + carry_lo);
         let (y_hi, y_lo) = split_u64(b_lo * c_hi);
         let (z_hi, z_lo) = split_u64(b_hi * c_lo);
-        let (r_hi, r_lo) = split_u64(x_hi + y_lo + z_lo + a_hi + carry_hi);
+        // Brackets to allow better ILP
+        let (r_hi, r_lo) = split_u64((x_hi + y_lo) + (z_lo + a_hi) + carry_hi);
 
         *carry = (b_hi * c_hi) + r_hi + y_hi + z_hi;
 
@@ -486,16 +499,28 @@ fn mac_digit(acc: &mut [u64], b: &[u64], c: u64) {
         return;
     }
 
-    let mut b_iter = b.iter();
     let mut carry = 0;
 
-    for ai in acc.iter_mut() {
-        if let Some(bi) = b_iter.next() {
-            *ai = mac_with_carry(*ai, *bi, c, &mut carry);
-        } else if carry != 0 {
-            *ai = mac_with_carry(*ai, 0, c, &mut carry);
-        } else {
-            break;
+    debug_assert_eq!(acc.len(), 8);
+    unroll! {
+        for i in 0..4 {
+            let a_index = i + from_index;
+            acc[a_index] = mac_with_carry(acc[a_index], b[i], c, &mut carry);
+        }
+    }
+    unroll! {
+        for i in 0..4 {
+            let a_index = i + from_index + 4;
+            if a_index < 8 {
+                let (a_hi, a_lo) = split_u64(acc[a_index]);
+                let (carry_hi, carry_lo) = split_u64(carry);
+                let (x_hi, x_lo) = split_u64(a_lo + carry_lo);
+                let (r_hi, r_lo) = split_u64(x_hi + a_hi + carry_hi);
+
+                carry = r_hi;
+
+                acc[a_index] = combine_u64(r_lo, x_lo);
+            }
         }
     }
 
@@ -509,13 +534,17 @@ fn mul_reduce(this: &mut [u64; 4], by: &[u64; 4], modulus: &[u64; 4], inv: u64) 
     // <http://cacr.uwaterloo.ca/hac/about/chap14.pdf>.
 
     let mut res = [0; 2 * 4];
-    for (i, xi) in this.iter().enumerate() {
-        mac_digit(&mut res[i..], by, *xi);
+    unroll! {
+        for i in 0..4 {
+            mac_digit(i, &mut res, by, this[i]);
+        }
     }
 
-    for i in 0..4 {
-        let k = inv.wrapping_mul(res[i]);
-        mac_digit(&mut res[i..], modulus, k);
+    unroll! {
+        for i in 0..4 {
+            let k = inv.wrapping_mul(res[i]);
+            mac_digit(i, &mut res, modulus, k);
+        }
     }
 
     this.copy_from_slice(&res[4..]);
