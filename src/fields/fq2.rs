@@ -4,6 +4,7 @@ use rand::Rng;
 
 use arith::{U256, U512};
 
+#[cfg(feature = "rustc-serialize")]
 use rustc_serialize::{Encodable, Encoder, Decodable, Decoder};
 
 #[inline]
@@ -28,6 +29,7 @@ pub struct Fq2 {
     c1: Fq
 }
 
+#[cfg(feature = "rustc-serialize")]
 impl Encodable for Fq2 {
     fn encode<S: Encoder>(&self, s: &mut S) -> Result<(), S::Error> {
         let c0: U256 = self.c0.into();
@@ -37,6 +39,7 @@ impl Encodable for Fq2 {
     }
 }
 
+#[cfg(feature = "rustc-serialize")]
 impl Decodable for Fq2 {
     fn decode<S: Decoder>(s: &mut S) -> Result<Fq2, S::Error> {
         let combined = try!(U512::decode(s));

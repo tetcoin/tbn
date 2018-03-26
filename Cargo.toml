@@ -9,12 +9,15 @@ homepage = "https://github.com/zcash/bn"
 repository = "https://github.com/zcash/bn"
 license = "MIT OR Apache-2.0"
 
+[features]
+default = ["rustc-serialize"]
+
 [[bench]]
 name = "api"
 
 [dependencies]
-rand = "0.3"
-rustc-serialize = "0.3"
+rand = "0.4"
+rustc-serialize = { version = "0.3", optional = true }
 byteorder = "1.0"
 
 [dev-dependencies.bincode]

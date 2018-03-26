@@ -4,6 +4,7 @@ use arith::U256;
 use std::fmt;
 use rand::Rng;
 
+#[cfg(feature = "rustc-serialize")]
 use rustc_serialize::{Encodable, Encoder, Decodable, Decoder};
 
 pub trait GroupElement: Sized +
@@ -25,7 +26,10 @@ pub trait GroupElement: Sized +
 }
 
 pub trait GroupParams: Sized {
+    #[cfg(feature = "rustc-serialize")]
     type Base: FieldElement + Decodable + Encodable;
+    #[cfg(not(feature = "rustc-serialize"))]
+    type Base: FieldElement;
 
     fn name() -> &'static str;
     fn one() -> G<Self>;
@@ -223,6 +227,7 @@ impl<P: GroupParams> AffineG<P> {
     }
 }
 
+#[cfg(feature = "rustc-serialize")]
 impl<P: GroupParams> Encodable for G<P> {
     fn encode<S: Encoder>(&self, s: &mut S) -> Result<(), S::Error> {
         if self.is_zero() {
@@ -236,6 +241,7 @@ impl<P: GroupParams> Encodable for G<P> {
     }
 }
 
+#[cfg(feature = "rustc-serialize")]
 impl<P: GroupParams> Encodable for AffineG<P> {
     fn encode<S: Encoder>(&self, s: &mut S) -> Result<(), S::Error> {
         try!(self.x.encode(s));
@@ -245,6 +251,7 @@ impl<P: GroupParams> Encodable for AffineG<P> {
     }
 }
 
+#[cfg(feature = "rustc-serialize")]
 impl<P: GroupParams> Decodable for G<P> {
     fn decode<S: Decoder>(s: &mut S) -> Result<G<P>, S::Error> {
         let l = try!(u8::decode(s));
@@ -258,6 +265,7 @@ impl<P: GroupParams> Decodable for G<P> {
     }
 }
 
+#[cfg(feature = "rustc-serialize")]
 impl<P: GroupParams> Decodable for AffineG<P> {
     fn decode<S: Decoder>(s: &mut S) -> Result<AffineG<P>, S::Error> {
         let x = try!(P::Base::decode(s));

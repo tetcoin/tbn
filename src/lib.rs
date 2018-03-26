@@ -1,4 +1,5 @@
 extern crate rand;
+#[cfg(feature = "rustc-serialize")]
 extern crate rustc_serialize;
 extern crate byteorder;
 
@@ -12,7 +13,8 @@ use groups::GroupElement;
 use std::ops::{Add, Sub, Mul, Neg};
 use rand::Rng;
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, RustcDecodable, RustcEncodable)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "rustc-serialize", derive(RustcDecodable, RustcEncodable))]
 #[repr(C)]
 pub struct Fr(fields::Fr);
 
@@ -70,7 +72,8 @@ pub enum FieldError {
 
 pub use groups::Error as GroupError;
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, RustcDecodable, RustcEncodable)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "rustc-serialize", derive(RustcDecodable, RustcEncodable))]
 #[repr(C)]
 pub struct Fq(fields::Fq);
 
@@ -144,10 +147,10 @@ impl Fq2 {
     }
 }
 
+#[cfg(feature = "rustc-serialize")]
 pub trait Group:
         rustc_serialize::Encodable +
         rustc_serialize::Decodable +
-        'static +
         Send +
         Sync +
         Copy +
@@ -167,7 +170,29 @@ pub trait Group:
     fn normalize(&mut self);
 }
 
-#[derive(Copy, Clone, PartialEq, Eq, RustcDecodable, RustcEncodable)]
+#[cfg(not(feature = "rustc-serialize"))]
+pub trait Group:
+        Send +
+        Sync +
+        Copy +
+        Clone +
+        PartialEq +
+        Eq +
+        Sized +
+        Add<Self, Output=Self> +
+        Sub<Self, Output=Self> +
+        Neg<Output=Self> +
+        Mul<Fr, Output=Self>
+{
+    fn zero() -> Self;
+    fn one() -> Self;
+    fn random<R: Rng>(rng: &mut R) -> Self;
+    fn is_zero(&self) -> bool;
+    fn normalize(&mut self);
+}
+
+#[derive(Copy, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "rustc-serialize", derive(RustcDecodable, RustcEncodable))]
 #[repr(C)]
 pub struct G1(groups::G1);
 
@@ -240,7 +265,8 @@ impl Mul<Fr> for G1 {
     fn mul(self, other: Fr) -> G1 { G1(self.0 * other.0) }
 }
 
-#[derive(Copy, Clone, PartialEq, Eq, RustcDecodable, RustcEncodable)]
+#[derive(Copy, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "rustc-serialize", derive(RustcDecodable, RustcEncodable))]
 #[repr(C)]
 pub struct AffineG1(groups::AffineG1);
 
@@ -276,7 +302,8 @@ impl From<AffineG1> for G1 {
     }
 }
 
-#[derive(Copy, Clone, PartialEq, Eq, RustcDecodable, RustcEncodable)]
+#[derive(Copy, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "rustc-serialize", derive(RustcDecodable, RustcEncodable))]
 #[repr(C)]
 pub struct G2(groups::G2);
 
@@ -369,7 +396,8 @@ pub fn pairing(p: G1, q: G2) -> Gt {
     Gt(groups::pairing(&p.0, &q.0))
 }
 
-#[derive(Copy, Clone, PartialEq, Eq, RustcDecodable, RustcEncodable)]
+#[derive(Copy, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "rustc-serialize", derive(RustcDecodable, RustcEncodable))]
 #[repr(C)]
 pub struct AffineG2(groups::AffineG2);
 
