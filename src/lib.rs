@@ -151,7 +151,6 @@ impl Fq2 {
 pub trait Group:
         rustc_serialize::Encodable +
         rustc_serialize::Decodable +
-        'static +
         Send +
         Sync +
         Copy +
@@ -173,7 +172,6 @@ pub trait Group:
 
 #[cfg(not(feature = "rustc-serialize"))]
 pub trait Group:
-        'static +
         Send +
         Sync +
         Copy +
