@@ -2,6 +2,7 @@ use rand::Rng;
 use std::ops::{Add, Sub, Mul, Neg};
 use super::FieldElement;
 
+#[cfg(feature = "rustc-serialize")]
 use rustc_serialize::{Encodable, Encoder, Decodable, Decoder};
 
 use arith::{U512, U256};
@@ -21,6 +22,7 @@ macro_rules! field_impl {
             }
         }
 
+        #[cfg(feature = "rustc-serialize")]
         impl Encodable for $name {
             fn encode<S: Encoder>(&self, s: &mut S) -> Result<(), S::Error> {
                 let normalized = U256::from(*self);
@@ -29,6 +31,7 @@ macro_rules! field_impl {
             }
         }
 
+        #[cfg(feature = "rustc-serialize")]
         impl Decodable for $name {
             fn decode<S: Decoder>(s: &mut S) -> Result<$name, S::Error> {
                 $name::new(try!(U256::decode(s))).ok_or_else(|| s.error("integer is not less than modulus"))

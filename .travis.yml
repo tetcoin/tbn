@@ -2,3 +2,4 @@ language: rust
 
 script:
   - cargo test --release
+  - cargo test --release --no-default-features

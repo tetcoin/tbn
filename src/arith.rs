@@ -1,6 +1,7 @@
 use std::cmp::Ordering;
 use rand::Rng;
 
+#[cfg(feature = "rustc-serialize")]
 use rustc_serialize::{Encodable, Encoder, Decodable, Decoder};
 use byteorder::{ByteOrder, BigEndian};
 
@@ -97,6 +98,7 @@ impl U512 {
     }
 }
 
+#[cfg(feature = "rustc-serialize")]
 impl Encodable for U512 {
     fn encode<S: Encoder>(&self, s: &mut S) -> Result<(), S::Error> {
         let mut buf = [0; (8 * 8)];
@@ -113,6 +115,7 @@ impl Encodable for U512 {
     }
 }
 
+#[cfg(feature = "rustc-serialize")]
 impl Decodable for U512 {
     fn decode<S: Decoder>(s: &mut S) -> Result<U512, S::Error> {
         let mut buf = [0; (8 * 8)];
@@ -125,6 +128,7 @@ impl Decodable for U512 {
     }
 }
 
+#[cfg(feature = "rustc-serialize")]
 impl Encodable for U256 {
     fn encode<S: Encoder>(&self, s: &mut S) -> Result<(), S::Error> {
         let mut buf = [0; (4 * 8)];
@@ -141,6 +145,7 @@ impl Encodable for U256 {
     }
 }
 
+#[cfg(feature = "rustc-serialize")]
 impl Decodable for U256 {
     fn decode<S: Decoder>(s: &mut S) -> Result<U256, S::Error> {
         let mut buf = [0; (4 * 8)];
