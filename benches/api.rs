@@ -1,12 +1,12 @@
 #![feature(test)]
-extern crate test;
-extern crate rand;
-extern crate bn;
 extern crate bincode;
+extern crate bn;
+extern crate rand;
+extern crate test;
 
 use bn::*;
 use bincode::SizeLimit::Infinite;
-use bincode::rustc_serialize::{encode, decode};
+use bincode::rustc_serialize::{decode, encode};
 
 const SAMPLES: usize = 30;
 
@@ -17,17 +17,15 @@ macro_rules! benchmark(
             let $rng = &mut rand::thread_rng();
             let $input: Vec<_> = (0..SAMPLES).map(|_| $pre).collect();
 
-            b.bench_n(SAMPLES as u64, |b| {
-                let mut c = 0;
+            let mut c = 0;
 
-                b.iter(|| {
-                    c += 1;
+            b.iter(|| {
+                c += 1;
 
-                    let $input = &$input[c % SAMPLES];
+                let $input = &$input[c % SAMPLES];
 
-                    $post
-                })
-            })
+                $post
+            });
         }
     )
 );

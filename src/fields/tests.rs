@@ -1,4 +1,4 @@
-use rand::{Rng,SeedableRng,StdRng};
+use rand::{Rng, SeedableRng, StdRng};
 use super::FieldElement;
 
 fn can_invert<F: FieldElement>() {
@@ -27,10 +27,7 @@ fn rand_element_eval<F: FieldElement, R: Rng>(rng: &mut R) {
         let c = F::random(rng);
         let d = F::random(rng);
 
-        assert_eq!(
-            (a + b) * (c + d),
-            (a * c) + (b * c) + (a * d) + (b * d)
-        );
+        assert_eq!((a + b) * (c + d), (a * c) + (b * c) + (a * d) + (b * d));
     }
 }
 
