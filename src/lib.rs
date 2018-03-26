@@ -147,30 +147,6 @@ impl Fq2 {
     }
 }
 
-#[cfg(feature = "rustc-serialize")]
-pub trait Group:
-        rustc_serialize::Encodable +
-        rustc_serialize::Decodable +
-        Send +
-        Sync +
-        Copy +
-        Clone +
-        PartialEq +
-        Eq +
-        Sized +
-        Add<Self, Output=Self> +
-        Sub<Self, Output=Self> +
-        Neg<Output=Self> +
-        Mul<Fr, Output=Self>
-{
-    fn zero() -> Self;
-    fn one() -> Self;
-    fn random<R: Rng>(rng: &mut R) -> Self;
-    fn is_zero(&self) -> bool;
-    fn normalize(&mut self);
-}
-
-#[cfg(not(feature = "rustc-serialize"))]
 pub trait Group:
         Send +
         Sync +
