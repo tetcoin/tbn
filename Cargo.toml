@@ -19,7 +19,6 @@ name = "api"
 rand = "0.4"
 rustc-serialize = { version = "0.3", optional = true }
 byteorder = "1.0"
-crunchy = "0.2.1"
 
 [dev-dependencies.bincode]
 version = "0.6"
