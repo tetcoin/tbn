@@ -574,7 +574,7 @@ fn two_inv() -> Fq {
 
 #[inline]
 fn ate_loop_count() -> U256 {
-    U256([
+    U256::from([
         0x9d797039be763ba8,
         0x0000000000000001,
         0x0000000000000000,
@@ -1038,8 +1038,13 @@ fn predefined_pair() {
 #[test]
 fn test_binlinearity() {
     use rand::{SeedableRng, StdRng};
-    let seed: [usize; 4] = [103245, 191922, 1293, 192103];
-    let mut rng = StdRng::from_seed(&seed);
+    let seed = [
+        0, 0, 0, 0, 0, 0, 64, 13, // 103245
+        0, 0, 0, 0, 0, 0, 176, 2, // 191922
+        0, 0, 0, 0, 0, 0, 0, 13, // 1293
+        0, 0, 0, 0, 0, 0, 96, 7u8, // 192103
+    ];
+    let mut rng = StdRng::from_seed(seed);
 
     for _ in 0..50 {
         let p = G1::random(&mut rng);
