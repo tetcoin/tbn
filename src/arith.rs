@@ -20,6 +20,12 @@ impl From<[u64; 4]> for U256 {
     }
 }
 
+impl From<u64> for U256 {
+    fn from(d: u64) -> Self {
+        U256::from([d, 0, 0, 0])
+    }
+}
+
 /// 512-bit, stack allocated biginteger for use in extension
 /// field serialization and scalar interpretation.
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]

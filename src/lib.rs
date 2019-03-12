@@ -146,6 +146,9 @@ impl Fq {
         a.to_big_endian(slice)
             .map_err(|_| FieldError::InvalidSliceLength)
     }
+    pub fn from_u256(u256: arith::U256) -> Result<Self, FieldError> {
+        Ok(Fq(fields::Fq::new(u256).ok_or(FieldError::NotMember)?))
+    }
 }
 
 impl Add<Fq> for Fq {
@@ -198,6 +201,9 @@ impl Fq2 {
 
     pub fn is_zero(&self) -> bool {
         self.0.is_zero()
+    }
+    pub fn pow(&self, exp: Fq) -> Self {
+        Fq2(self.0.pow(exp.0))
     }
 }
 
