@@ -429,7 +429,6 @@ fn div2(a: &mut [u128; 2]) {
 
 /// Multiply by two
 #[inline]
-#[inline]
 fn mul2(a: &mut [u128; 2]) {
     let tmp = a[0] >> 127;
     a[0] <<= 1;
