@@ -149,6 +149,9 @@ impl Fq {
     pub fn from_u256(u256: arith::U256) -> Result<Self, FieldError> {
         Ok(Fq(fields::Fq::new(u256).ok_or(FieldError::NotMember)?))
     }
+    pub fn into_u256(self) -> arith::U256 {
+        (self.0).into()
+    }
 }
 
 impl Add<Fq> for Fq {
