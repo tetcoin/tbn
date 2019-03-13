@@ -183,6 +183,8 @@ impl Mul for Fq {
     }
 }
 
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[repr(C)]
 pub struct Fq2(fields::Fq2);
 
 impl Fq2 {
