@@ -80,6 +80,22 @@ impl U512 {
         U512(res)
     }
 
+     pub fn from_slice(s: &[u8]) -> Result<U512, Error> {
+        if s.len() != 64 {
+            return Err(Error::InvalidLength {
+                expected: 32,
+                actual: s.len(),
+            });
+        }
+
+        let mut n = [0; 4];
+        for (l, i) in (0..4).rev().zip((0..4).map(|i| i * 16)) {
+            n[l] = BigEndian::read_u128(&s[i..]);
+        }
+
+        Ok(U512(n))
+    }
+
     /// Get a random U512
     pub fn random<R: Rng>(rng: &mut R) -> U512 {
         U512(rng.gen())
