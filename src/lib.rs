@@ -152,6 +152,9 @@ impl Fq {
     pub fn into_u256(self) -> arith::U256 {
         (self.0).into()
     }
+    pub fn modulus() -> arith::U256 {
+        fields::Fq::modulus()
+    }
 }
 
 impl Add<Fq> for Fq {
