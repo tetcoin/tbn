@@ -210,9 +210,38 @@ impl Fq2 {
     pub fn pow(&self, exp: Fq) -> Self {
         Fq2(self.0.pow(exp.0))
     }
+}
 
-    pub fn neg(&self) -> Self {
-        Fq2(self.0.neg())
+
+impl Add<Fq2> for Fq2 {
+    type Output = Self;
+
+    fn add(self, other: Self) -> Self {
+        Fq2(self.0 + other.0)
+    }
+}
+
+impl Sub<Fq2> for Fq2 {
+    type Output = Self;
+
+    fn sub(self, other: Self) -> Self {
+        Fq2(self.0 - other.0)
+    }
+}
+
+impl Neg for Fq2 {
+    type Output = Self;
+
+    fn neg(self) -> Self {
+        Fq2(-self.0)
+    }
+}
+
+impl Mul for Fq2 {
+    type Output = Self;
+
+    fn mul(self, other: Self) -> Self {
+        Fq2(self.0 * other.0)
     }
 }
 
