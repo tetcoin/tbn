@@ -190,6 +190,10 @@ impl Fq2 {
         Fq2(fields::Fq2::one())
     }
 
+    pub fn i() -> Fq2 {
+        Fq2::new(Fq::zero(), Fq::one())
+    }
+
     pub fn zero() -> Fq2 {
         Fq2(fields::Fq2::zero())
     }
@@ -202,8 +206,13 @@ impl Fq2 {
     pub fn is_zero(&self) -> bool {
         self.0.is_zero()
     }
+
     pub fn pow(&self, exp: Fq) -> Self {
         Fq2(self.0.pow(exp.0))
+    }
+
+    pub fn neg(&self) -> Self {
+        Fq2(self.0.neg())
     }
 }
 
