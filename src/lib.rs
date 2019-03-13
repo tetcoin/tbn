@@ -10,7 +10,7 @@ mod fields;
 mod groups;
 
 use fields::FieldElement;
-use groups::GroupElement;
+use groups::{GroupElement, G1Params, G2Params, GroupParams};
 
 use std::ops::{Add, Mul, Neg, Sub};
 use rand::Rng;
@@ -310,6 +310,10 @@ impl G1 {
     pub fn set_z(&mut self, z: Fq) {
         *self.0.z_mut() = z.0
     }
+
+    pub fn b() -> Fq {
+        Fq(G1Params::coeff_b())
+    }
 }
 
 impl Group for G1 {
@@ -436,6 +440,10 @@ impl G2 {
 
     pub fn set_z(&mut self, z: Fq2) {
         *self.0.z_mut() = z.0
+    }
+
+    pub fn b() -> Fq2 {
+        Fq2(G2Params::coeff_b())
     }
 }
 
