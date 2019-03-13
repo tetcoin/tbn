@@ -209,8 +209,8 @@ impl Fq2 {
         self.0.is_zero()
     }
 
-    pub fn pow(&self, exp: Fq) -> Self {
-        Fq2(self.0.pow(exp.0))
+    pub fn pow(&self, exp: arith::U256) -> Self {
+        Fq2(self.0.pow(exp))
     }
 }
 
