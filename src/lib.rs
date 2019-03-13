@@ -215,6 +215,14 @@ impl Fq2 {
     pub fn pow(&self, exp: arith::U256) -> Self {
         Fq2(self.0.pow(exp))
     }
+
+    pub fn real(&self) -> Fq {
+        Fq(*self.0.real())
+    }
+
+    pub fn imaginary(&self) -> Fq {
+        Fq(*self.0.imaginary())
+    }
 }
 
 

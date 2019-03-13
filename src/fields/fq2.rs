@@ -92,6 +92,14 @@ impl Fq2 {
             }
         }
     }
+
+    pub fn real(&self) -> &Fq {
+        &self.c0
+    }
+
+    pub fn imaginary(&self) -> &Fq {
+        &self.c1
+    }
 }
 
 impl FieldElement for Fq2 {
