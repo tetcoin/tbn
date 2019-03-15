@@ -10,7 +10,7 @@ mod fields;
 mod groups;
 
 use fields::FieldElement;
-use groups::GroupElement;
+use groups::{GroupElement, G1Params, G2Params, GroupParams};
 
 use std::ops::{Add, Mul, Neg, Sub};
 use rand::Rng;
@@ -146,6 +146,15 @@ impl Fq {
         a.to_big_endian(slice)
             .map_err(|_| FieldError::InvalidSliceLength)
     }
+    pub fn from_u256(u256: arith::U256) -> Result<Self, FieldError> {
+        Ok(Fq(fields::Fq::new(u256).ok_or(FieldError::NotMember)?))
+    }
+    pub fn into_u256(self) -> arith::U256 {
+        (self.0).into()
+    }
+    pub fn modulus() -> arith::U256 {
+        fields::Fq::modulus()
+    }
 }
 
 impl Add<Fq> for Fq {
@@ -180,11 +189,17 @@ impl Mul for Fq {
     }
 }
 
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[repr(C)]
 pub struct Fq2(fields::Fq2);
 
 impl Fq2 {
     pub fn one() -> Fq2 {
         Fq2(fields::Fq2::one())
+    }
+
+    pub fn i() -> Fq2 {
+        Fq2::new(Fq::zero(), Fq::one())
     }
 
     pub fn zero() -> Fq2 {
@@ -198,6 +213,51 @@ impl Fq2 {
 
     pub fn is_zero(&self) -> bool {
         self.0.is_zero()
+    }
+
+    pub fn pow(&self, exp: arith::U256) -> Self {
+        Fq2(self.0.pow(exp))
+    }
+
+    pub fn real(&self) -> Fq {
+        Fq(*self.0.real())
+    }
+
+    pub fn imaginary(&self) -> Fq {
+        Fq(*self.0.imaginary())
+    }
+}
+
+
+impl Add<Fq2> for Fq2 {
+    type Output = Self;
+
+    fn add(self, other: Self) -> Self {
+        Fq2(self.0 + other.0)
+    }
+}
+
+impl Sub<Fq2> for Fq2 {
+    type Output = Self;
+
+    fn sub(self, other: Self) -> Self {
+        Fq2(self.0 - other.0)
+    }
+}
+
+impl Neg for Fq2 {
+    type Output = Self;
+
+    fn neg(self) -> Self {
+        Fq2(-self.0)
+    }
+}
+
+impl Mul for Fq2 {
+    type Output = Self;
+
+    fn mul(self, other: Self) -> Self {
+        Fq2(self.0 * other.0)
     }
 }
 
@@ -252,6 +312,10 @@ impl G1 {
 
     pub fn set_z(&mut self, z: Fq) {
         *self.0.z_mut() = z.0
+    }
+
+    pub fn b() -> Fq {
+        Fq(G1Params::coeff_b())
     }
 }
 
@@ -379,6 +443,10 @@ impl G2 {
 
     pub fn set_z(&mut self, z: Fq2) {
         *self.0.z_mut() = z.0
+    }
+
+    pub fn b() -> Fq2 {
+        Fq2(G2Params::coeff_b())
     }
 }
 
