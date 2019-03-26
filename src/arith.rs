@@ -20,6 +20,12 @@ impl From<[u64; 4]> for U256 {
     }
 }
 
+impl From<u64> for U256 {
+    fn from(d: u64) -> Self {
+        U256::from([d, 0, 0, 0])
+    }
+}
+
 /// 512-bit, stack allocated biginteger for use in extension
 /// field serialization and scalar interpretation.
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
@@ -72,6 +78,22 @@ impl U512 {
         debug_assert!(0 == carry);
 
         U512(res)
+    }
+
+     pub fn from_slice(s: &[u8]) -> Result<U512, Error> {
+        if s.len() != 64 {
+            return Err(Error::InvalidLength {
+                expected: 32,
+                actual: s.len(),
+            });
+        }
+
+        let mut n = [0; 4];
+        for (l, i) in (0..4).rev().zip((0..4).map(|i| i * 16)) {
+            n[l] = BigEndian::read_u128(&s[i..]);
+        }
+
+        Ok(U512(n))
     }
 
     /// Get a random U512
@@ -422,7 +444,6 @@ fn div2(a: &mut [u128; 2]) {
 }
 
 /// Multiply by two
-#[inline]
 #[inline]
 fn mul2(a: &mut [u128; 2]) {
     let tmp = a[0] >> 127;
