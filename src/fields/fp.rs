@@ -73,13 +73,9 @@ macro_rules! field_impl {
             }
 
             /// Converts a U256 to an Fr regardless of modulus.
-            pub fn new_mul_factor(mut a: U256) -> Option<Self> {
-                if true {
-                    a.mul(&U256::from($rsquared), &U256::from($modulus), $inv);
-                    Some($name(a))
-                } else {
-                    None
-                }
+            pub fn new_mul_factor(mut a: U256) -> Self {
+                a.mul(&U256::from($rsquared), &U256::from($modulus), $inv);
+                $name(a)
             }
 
             pub fn interpret(buf: &[u8; 64]) -> Self {
