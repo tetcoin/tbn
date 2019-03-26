@@ -57,6 +57,12 @@ impl Fr {
             .to_big_endian(slice)
             .map_err(|_| FieldError::InvalidSliceLength)
     }
+    pub fn new(val: arith::U256) -> Option<Self> {
+        fields::Fr::new(val).map(|x| Fr(x))
+    }
+    pub fn new_mul_factor(val: arith::U256) -> Option<Self> {
+        fields::Fr::new_mul_factor(val).map(|x| Fr(x))
+    }
 }
 
 impl Add<Fr> for Fr {
