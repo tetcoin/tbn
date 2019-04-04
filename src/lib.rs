@@ -62,6 +62,9 @@ impl Fr {
     pub fn new_mul_factor(val: arith::U256) -> Self {
         Fr(fields::Fr::new_mul_factor(val))
     }
+    pub fn into_u256(self) -> arith::U256 {
+        (self.0).into()
+    }
 }
 
 impl Add<Fr> for Fr {
