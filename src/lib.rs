@@ -65,6 +65,9 @@ impl Fr {
     pub fn into_u256(self) -> arith::U256 {
         (self.0).into()
     }
+    pub fn set_bit(&mut self, bit: usize, to: bool) {
+        self.0.set_bit(bit, to);
+    }
 }
 
 impl Add<Fr> for Fr {

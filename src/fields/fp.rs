@@ -98,6 +98,10 @@ macro_rules! field_impl {
             pub fn raw(&self) -> &U256 {
                 &self.0
             }
+
+            pub fn set_bit(&mut self, bit: usize, to: bool) {
+                self.0.set_bit(bit, to);
+            }
         }
 
         impl FieldElement for $name {
