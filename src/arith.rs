@@ -208,6 +208,28 @@ impl Decodable for U256 {
     }
 }
 
+impl Ord for U512 {
+    #[inline]
+    fn cmp(&self, other: &U512) -> Ordering {
+        for (a, b) in self.0.iter().zip(other.0.iter()).rev() {
+            if *a < *b {
+                return Ordering::Less;
+            } else if *a > *b {
+                return Ordering::Greater;
+            }
+        }
+
+        return Ordering::Equal;
+    }
+}
+
+impl PartialOrd for U512 {
+    #[inline]
+    fn partial_cmp(&self, other: &U512) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
 impl Ord for U256 {
     #[inline]
     fn cmp(&self, other: &U256) -> Ordering {
