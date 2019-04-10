@@ -25,7 +25,7 @@ pub trait GroupElement
     fn double(&self) -> Self;
 }
 
-pub trait GroupParams: Sized {
+pub trait GroupParams: Sized + fmt::Debug {
     #[cfg(feature = "rustc-serialize")]
     type Base: FieldElement + Decodable + Encodable;
     #[cfg(not(feature = "rustc-serialize"))]
@@ -76,6 +76,7 @@ impl<P: GroupParams> G<P> {
     }
 }
 
+#[derive(Debug)]
 pub struct AffineG<P: GroupParams> {
     x: P::Base,
     y: P::Base,
@@ -415,6 +416,7 @@ impl<P: GroupParams> Sub<G<P>> for G<P> {
     }
 }
 
+#[derive(Debug)]
 pub struct G1Params;
 
 impl GroupParams for G1Params {
@@ -451,6 +453,7 @@ pub type G1 = G<G1Params>;
 
 pub type AffineG1 = AffineG<G1Params>;
 
+#[derive(Debug)]
 pub struct G2Params;
 
 impl GroupParams for G2Params {

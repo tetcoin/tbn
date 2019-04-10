@@ -48,14 +48,25 @@ impl Fr {
     pub fn from_slice(slice: &[u8]) -> Result<Self, FieldError> {
         arith::U256::from_slice(slice)
             .map_err(|_| FieldError::InvalidSliceLength) // todo: maybe more sensful error handling
-            .and_then(|x| fields::Fr::new_mul_factor(x).ok_or(FieldError::NotMember))
-            .map(|x| Fr(x))
+            .map(|x| Fr::new_mul_factor(x))
     }
     pub fn to_big_endian(&self, slice: &mut [u8]) -> Result<(), FieldError> {
         self.0
             .raw()
             .to_big_endian(slice)
             .map_err(|_| FieldError::InvalidSliceLength)
+    }
+    pub fn new(val: arith::U256) -> Option<Self> {
+        fields::Fr::new(val).map(|x| Fr(x))
+    }
+    pub fn new_mul_factor(val: arith::U256) -> Self {
+        Fr(fields::Fr::new_mul_factor(val))
+    }
+    pub fn into_u256(self) -> arith::U256 {
+        (self.0).into()
+    }
+    pub fn set_bit(&mut self, bit: usize, to: bool) {
+        self.0.set_bit(bit, to);
     }
 }
 
@@ -280,7 +291,7 @@ pub trait Group
     fn normalize(&mut self);
 }
 
-#[derive(Copy, Clone, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "rustc-serialize", derive(RustcDecodable, RustcEncodable))]
 #[repr(C)]
 pub struct G1(groups::G1);
@@ -374,7 +385,7 @@ impl Mul<Fr> for G1 {
     }
 }
 
-#[derive(Copy, Clone, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "rustc-serialize", derive(RustcDecodable, RustcEncodable))]
 #[repr(C)]
 pub struct AffineG1(groups::AffineG1);
@@ -411,7 +422,7 @@ impl From<AffineG1> for G1 {
     }
 }
 
-#[derive(Copy, Clone, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "rustc-serialize", derive(RustcDecodable, RustcEncodable))]
 #[repr(C)]
 pub struct G2(groups::G2);
