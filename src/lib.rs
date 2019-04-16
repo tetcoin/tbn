@@ -4,6 +4,7 @@ extern crate crunchy;
 extern crate rand;
 #[cfg(feature = "rustc-serialize")]
 extern crate rustc_serialize;
+#[macro_use] extern crate lazy_static;
 
 pub mod arith;
 mod fields;
@@ -108,6 +109,19 @@ pub enum FieldError {
     NotMember,
 }
 
+#[derive(Debug)]
+pub enum CurveError {
+    InvalidEncoding,
+    NotMember,
+    Field(FieldError),
+}
+
+impl From<FieldError> for CurveError {
+    fn from(fe: FieldError) -> Self {
+        CurveError::Field(fe)
+    }
+}
+
 pub use groups::Error as GroupError;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
@@ -165,6 +179,10 @@ impl Fq {
     }
     pub fn modulus() -> arith::U256 {
         fields::Fq::modulus()
+    }
+
+    pub fn sqrt(&self) -> Option<Self> {
+        self.0.sqrt().map(Fq)
     }
 }
 
@@ -327,6 +345,24 @@ impl G1 {
 
     pub fn b() -> Fq {
         Fq(G1Params::coeff_b())
+    }
+
+    pub fn from_compressed(bytes: &[u8]) -> Result<Self, CurveError> {
+        if bytes.len() != 33 { return Err(CurveError::InvalidEncoding); }
+
+        let sign = bytes[0];
+        let fq = Fq::from_slice(&bytes[1..])?;
+        let x = fq;
+        let y_squared = (fq * fq * fq) + Self::b();
+
+        let mut y = y_squared.sqrt().ok_or(CurveError::NotMember)?;
+
+        if sign == 2 && y.into_u256().get_bit(0).expect("bit 0 always exist; qed") { y = y.neg(); }
+        else if sign == 3 && !y.into_u256().get_bit(0).expect("bit 0 always exist; qed") { y = y.neg(); }
+        else if sign != 3 && sign != 2 {
+            return Err(CurveError::InvalidEncoding);
+        }
+        AffineG1::new(x, y).map_err(|_| CurveError::NotMember).map(Into::into)
     }
 }
 
@@ -578,5 +614,26 @@ impl AffineG2 {
 impl From<AffineG2> for G2 {
     fn from(affine: AffineG2) -> Self {
         G2(affine.0.to_jacobian())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    extern crate rustc_hex as hex;
+
+    use super::{G1, Fq};
+
+    fn hex(s: &'static str) -> Vec<u8> {
+        use self::hex::FromHex;
+        s.from_hex().unwrap()
+    }
+
+    #[test]
+    fn g1_from_compressed() {
+        let g1 = G1::from_compressed(&hex("0230644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd46"))
+            .expect("Invalid g1 decompress result");
+        assert_eq!(g1.x(), Fq::from_str("21888242871839275222246405745257275088696311157297823662689037894645226208582").unwrap());
+        assert_eq!(g1.y(), Fq::from_str("3969792565221544645472939191694882283483352126195956956354061729942568608776").unwrap());
+        assert_eq!(g1.z(), Fq::one());
     }
 }
