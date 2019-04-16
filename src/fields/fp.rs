@@ -249,7 +249,7 @@ lazy_static! {
         0x30644e72e131a029
     ]);
 
-	static ref FQ_MINUS3_DIV4: Fq =
+	pub static ref FQ_MINUS3_DIV4: Fq =
 		Fq::new(3.into()).expect("3 is a valid field element and static; qed").neg() *
 		Fq::new(4.into()).expect("4 is a valid field element and static; qed").inverse()
 			.expect("4 has inverse in Fq and is static; qed");

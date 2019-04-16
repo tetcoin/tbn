@@ -206,3 +206,74 @@ impl Neg for Fq2 {
         }
     }
 }
+
+lazy_static! {
+    static ref FQ: U256 = U256::from([
+        0x3c208c16d87cfd47,
+        0x97816a916871ca8d,
+        0xb85045b68181585d,
+        0x30644e72e131a029
+    ]);
+
+    static ref FQ_MINUS3_DIV4: Fq =
+        Fq::new(3.into()).expect("3 is a valid field element and static; qed").neg() *
+        Fq::new(4.into()).expect("4 is a valid field element and static; qed").inverse()
+        .expect("4 has inverse in Fq and is static; qed");
+
+    static ref FQ_MINUS1_DIV2: Fq =
+        Fq::new(1.into()).expect("1 is a valid field element and static; qed").neg() *
+        Fq::new(2.into()).expect("2 is a valid field element and static; qed").inverse()
+            .expect("2 has inverse in Fq and is static; qed");
+}
+
+impl Fq2 {
+    pub fn i() -> Fq2 {
+        Fq2::new(Fq::zero(), Fq::one())
+    }
+
+    pub fn sqrt(&self) -> Option<Self> {
+        let a1 = self.pow::<U256>((*FQ_MINUS3_DIV4).into());
+        let a1a = a1 * *self;
+        let alpha = a1 * a1a;
+        let a0 = alpha.pow(*FQ) * alpha;
+
+        if a0 == Fq2::one().neg() {
+            return None;
+        }
+
+        if alpha == Fq2::one().neg() {
+            Some(Self::i() * a1a)
+        } else {
+            let b = (alpha + Fq2::one()).pow::<U256>((*FQ_MINUS1_DIV2).into());
+            Some(b * a1a)
+        }
+    }
+}
+
+
+#[test]
+fn sqrt_fq2() {
+    // from zcash test_proof.cpp
+    let x1 = Fq2::new(
+        Fq::from_str("12844195307879678418043983815760255909500142247603239203345049921980497041944").unwrap(),
+        Fq::from_str("7476417578426924565731404322659619974551724117137577781074613937423560117731").unwrap(),
+    );
+
+    let x2 = Fq2::new(
+        Fq::from_str("3345897230485723946872934576923485762803457692345760237495682347502347589474").unwrap(),
+        Fq::from_str("1234912378405347958234756902345768290345762348957605678245967234857634857676").unwrap(),
+    );
+
+    assert_eq!(x2.sqrt().unwrap(), x1);
+
+    // i is sqrt(-1)
+    assert_eq!(
+        Fq2::one().neg().sqrt().unwrap(),
+        Fq2::i(),
+    );
+
+    // no sqrt for (1 + 2i)
+    assert!(
+        Fq2::new(Fq::from_str("1").unwrap(), Fq::from_str("2").unwrap()).sqrt().is_none()
+    );
+}

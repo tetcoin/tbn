@@ -228,7 +228,7 @@ impl Fq2 {
     }
 
     pub fn i() -> Fq2 {
-        Fq2::new(Fq::zero(), Fq::one())
+        Fq2(fields::Fq2::i())
     }
 
     pub fn zero() -> Fq2 {
@@ -254,6 +254,10 @@ impl Fq2 {
 
     pub fn imaginary(&self) -> Fq {
         Fq(*self.0.imaginary())
+    }
+
+    pub fn sqrt(&self) -> Option<Self> {
+        self.0.sqrt().map(Fq2)
     }
 }
 
