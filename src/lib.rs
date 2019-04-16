@@ -106,6 +106,7 @@ impl Mul for Fr {
 #[derive(Debug)]
 pub enum FieldError {
     InvalidSliceLength,
+    InvalidU512Encoding,
     NotMember,
 }
 
@@ -258,6 +259,15 @@ impl Fq2 {
 
     pub fn sqrt(&self) -> Option<Self> {
         self.0.sqrt().map(Fq2)
+    }
+
+    pub fn from_slice(bytes: &[u8]) -> Result<Self, FieldError> {
+        let u512 = arith::U512::from_slice(bytes).map_err(|_| FieldError::InvalidU512Encoding)?;
+        let (res, c0) = u512.divrem(&Fq::modulus());
+        Ok(Fq2::new(
+            Fq::from_u256(c0).map_err(|_| FieldError::NotMember)?,
+            Fq::from_u256(res.ok_or(FieldError::NotMember)?).map_err(|_| FieldError::NotMember)?,
+        ))
     }
 }
 
@@ -499,6 +509,28 @@ impl G2 {
     pub fn b() -> Fq2 {
         Fq2(G2Params::coeff_b())
     }
+
+    pub fn from_compressed(bytes: &[u8]) -> Result<Self, CurveError> {
+
+        if bytes.len() != 65 { return Err(CurveError::InvalidEncoding); }
+
+        let sign = bytes[0];
+        let x = Fq2::from_slice(&bytes[1..])?;
+
+        let y_squared = (x * x * x) + G2::b();
+        let y = y_squared.sqrt().ok_or(CurveError::NotMember)?;
+        let y_neg = -y;
+
+        let y_gt = y.0.to_u512() > y_neg.0.to_u512();
+
+        let e_y = if sign == 10 { if y_gt { y_neg } else { y } }
+        else if sign == 11 { if y_gt { y } else { y_neg } }
+        else {
+            return Err(CurveError::InvalidEncoding);
+        };
+
+        AffineG2::new(x, e_y).map_err(|_| CurveError::NotMember).map(Into::into)
+    }
 }
 
 impl Group for G2 {
@@ -625,7 +657,7 @@ impl From<AffineG2> for G2 {
 mod tests {
     extern crate rustc_hex as hex;
 
-    use super::{G1, Fq};
+    use super::{G1, Fq, G2, Fq2};
 
     fn hex(s: &'static str) -> Vec<u8> {
         use self::hex::FromHex;
@@ -639,5 +671,53 @@ mod tests {
         assert_eq!(g1.x(), Fq::from_str("21888242871839275222246405745257275088696311157297823662689037894645226208582").unwrap());
         assert_eq!(g1.y(), Fq::from_str("3969792565221544645472939191694882283483352126195956956354061729942568608776").unwrap());
         assert_eq!(g1.z(), Fq::one());
+    }
+
+
+    #[test]
+    fn g2_from_compressed() {
+        let g2 = G2::from_compressed(
+            &hex("0a023aed31b5a9e486366ea9988b05dba469c6206e58361d9c065bbea7d928204a761efc6e4fa08ed227650134b52c7f7dd0463963e8a4bf21f4899fe5da7f984a")
+        ).expect("Valid g2 point hex encoding");
+
+        assert_eq!(g2.x(),
+                   Fq2::new(
+                       Fq::from_str("5923585509243758863255447226263146374209884951848029582715967108651637186684").unwrap(),
+                       Fq::from_str("5336385337059958111259504403491065820971993066694750945459110579338490853570").unwrap(),
+                   )
+        );
+
+        assert_eq!(g2.y(),
+                   Fq2::new(
+                       Fq::from_str("10374495865873200088116930399159835104695426846400310764827677226300185211748").unwrap(),
+                       Fq::from_str("5256529835065685814318509161957442385362539991735248614869838648137856366932").unwrap(),
+                   )
+        );
+
+        // 0b prefix is point reflection on the curve
+        let g2 = -G2::from_compressed(
+            &hex("0b023aed31b5a9e486366ea9988b05dba469c6206e58361d9c065bbea7d928204a761efc6e4fa08ed227650134b52c7f7dd0463963e8a4bf21f4899fe5da7f984a")
+        ).expect("Valid g2 point hex encoding");
+
+        assert_eq!(g2.x(),
+                   Fq2::new(
+                       Fq::from_str("5923585509243758863255447226263146374209884951848029582715967108651637186684").unwrap(),
+                       Fq::from_str("5336385337059958111259504403491065820971993066694750945459110579338490853570").unwrap(),
+                   )
+        );
+
+        assert_eq!(g2.y(),
+                   Fq2::new(
+                       Fq::from_str("10374495865873200088116930399159835104695426846400310764827677226300185211748").unwrap(),
+                       Fq::from_str("5256529835065685814318509161957442385362539991735248614869838648137856366932").unwrap(),
+                   )
+        );
+
+        // valid point but invalid sign prefix
+        assert!(
+            G2::from_compressed(
+                &hex("0c023aed31b5a9e486366ea9988b05dba469c6206e58361d9c065bbea7d928204a761efc6e4fa08ed227650134b52c7f7dd0463963e8a4bf21f4899fe5da7f984a")
+            ).is_err()
+        );
     }
 }

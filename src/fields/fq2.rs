@@ -248,6 +248,13 @@ impl Fq2 {
             Some(b * a1a)
         }
     }
+
+    pub fn to_u512(&self) -> U512 {
+        let c0: U256 = (*self.real()).into();
+        let c1: U256 = (*self.imaginary()).into();
+
+        U512::new(&c1, &c0, &FQ)
+    }
 }
 
 
