@@ -240,6 +240,44 @@ field_impl!(
     0x9ede7d651eca6ac987d20782e4866389
 );
 
+lazy_static! {
+
+    static ref FQ: U256 = U256::from([
+        0x3c208c16d87cfd47,
+        0x97816a916871ca8d,
+        0xb85045b68181585d,
+        0x30644e72e131a029
+    ]);
+
+	pub static ref FQ_MINUS3_DIV4: Fq =
+		Fq::new(3.into()).expect("3 is a valid field element and static; qed").neg() *
+		Fq::new(4.into()).expect("4 is a valid field element and static; qed").inverse()
+			.expect("4 has inverse in Fq and is static; qed");
+
+	static ref FQ_MINUS1_DIV2: Fq =
+		Fq::new(1.into()).expect("1 is a valid field element and static; qed").neg() *
+		Fq::new(2.into()).expect("2 is a valid field element and static; qed").inverse()
+			.expect("2 has inverse in Fq and is static; qed");
+
+}
+
+impl Fq {
+    pub fn sqrt(&self) -> Option<Self> {
+        let a1 = self.pow(*FQ_MINUS3_DIV4);
+        let a1a = a1 * *self;
+        let a0 = a1 * (a1a);
+
+        let mut am1 = *FQ;
+        am1.sub(&1.into(), &*FQ);
+
+        if a0 == Fq::new(am1).unwrap() {
+            None
+        } else {
+            Some(a1a)
+        }
+    }
+}
+
 #[inline]
 pub fn const_fq(i: [u64; 4]) -> Fq {
     Fq(U256::from(i))
@@ -264,4 +302,14 @@ fn test_rsquared() {
 
         assert_eq!(a, c);
     }
+}
+
+
+#[test]
+fn sqrt_fq() {
+    // from zcash test_proof.cpp
+    let fq1 = Fq::from_str("5204065062716160319596273903996315000119019512886596366359652578430118331601").unwrap();
+    let fq2 = Fq::from_str("348579348568").unwrap();
+
+    assert_eq!(fq1, fq2.sqrt().expect("348579348568 is quadratic residue"));
 }
