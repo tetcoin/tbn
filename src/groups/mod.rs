@@ -672,6 +672,47 @@ impl G2Precomp {
     }
 }
 
+fn miller_loop_batch(g2_precomputes: &Vec<G2Precomp>, g1_vec: &Vec<AffineG<G1Params>>) -> Fq12 {
+    let mut f = Fq12::one();
+
+    let mut idx = 0;
+
+    let mut found_one = false;
+    for i in ate_loop_count().bits() {
+        if !found_one {
+            // skips the first bit
+            found_one = i;
+            continue;
+        }
+
+        f = f.squared();
+        for (g2_precompute, g1) in g2_precomputes.iter().zip(g1_vec.iter()) {
+            let c = &g2_precompute.coeffs[idx];
+            f = f.mul_by_024(c.ell_0, c.ell_vw.scale(g1.y), c.ell_vv.scale(g1.x));
+        }
+        idx += 1;
+
+        if i {
+            for (g2_precompute, g1) in g2_precomputes.iter().zip(g1_vec.iter()) {
+                let c = &g2_precompute.coeffs[idx];
+                f = f.mul_by_024(c.ell_0, c.ell_vw.scale(g1.y), c.ell_vv.scale(g1.x));
+            }
+            idx += 1;
+        }
+    }
+
+    for (g2_precompute, g1) in g2_precomputes.iter().zip(g1_vec.iter()) {
+        let c = &g2_precompute.coeffs[idx];
+        f = f.mul_by_024(c.ell_0, c.ell_vw.scale(g1.y), c.ell_vv.scale(g1.x));
+    }
+    idx += 1;
+    for (g2_precompute, g1) in g2_precomputes.iter().zip(g1_vec.iter()) {
+        let c = &g2_precompute.coeffs[idx];
+        f = f.mul_by_024(c.ell_0, c.ell_vw.scale(g1.y), c.ell_vv.scale(g1.x));
+    }
+    f
+}
+
 #[test]
 fn test_miller_loop() {
     use fields::Fq6;
@@ -936,6 +977,28 @@ pub fn pairing(p: &G1, q: &G2) -> Fq12 {
     }
 }
 
+pub fn pairing_batch(p_vec: &[G1], q_vec: &[G2]) -> Fq12 {
+
+    let mut p_affines: Vec<AffineG<G1Params>> = vec![];
+    let mut q_precomputes: Vec<G2Precomp> = vec![];
+    for (p, q) in p_vec.into_iter().zip(q_vec.into_iter()) {
+
+        let p_affine = p.to_affine();
+        let q_affine = q.to_affine();
+        let exists = match(p_affine, q_affine)
+        {
+            (None, _) | (_, None) => false,
+            (Some(_p_affine), Some(_q_affine)) => true,
+        };
+
+        if exists {
+            p_affines.push(p.to_affine().unwrap());
+            q_precomputes.push(q.to_affine().unwrap().precompute());    
+        }
+    }
+    miller_loop_batch(&q_precomputes, &p_affines).final_exponentiation().expect("miller loop cannot produce zero")
+}
+
 #[test]
 fn test_reduced_pairing() {
     use fields::Fq6;
@@ -1035,11 +1098,15 @@ fn predefined_pair() {
 
     let p = pairing(&g1, &g2);
 
+    let g1_vec : Vec<G1> = vec![g1, g1];
+    let g2_vec : Vec<G2> = vec![g2, g2];
+    let p2 = pairing_batch(&g1_vec, &g2_vec);
+    assert!(!p2.is_zero());
     assert!(!p.is_zero());
 }
 
 #[test]
-fn test_binlinearity() {
+fn test_bilinearity() {
     use rand::{SeedableRng, StdRng};
     let seed = [
         0, 0, 0, 0, 0, 0, 64, 13, // 103245
@@ -1049,13 +1116,21 @@ fn test_binlinearity() {
     ];
     let mut rng = StdRng::from_seed(seed);
 
+    let mut p_vec : Vec<G1> = vec![];
+    let mut q_vec : Vec<G2> = vec![];
+    let mut sp_vec : Vec<G1> = vec![];
+    let mut sq_vec : Vec<G2> = vec![];
+    
     for _ in 0..50 {
         let p = G1::random(&mut rng);
         let q = G2::random(&mut rng);
         let s = Fr::random(&mut rng);
         let sp = p * s;
         let sq = q * s;
-
+        sp_vec.push(sp);
+        q_vec.push(q);
+        sq_vec.push(sq);
+        p_vec.push(p);
         let a = pairing(&p, &q).pow(s);
         let b = pairing(&sp, &q);
         let c = pairing(&p, &sq);
@@ -1068,6 +1143,9 @@ fn test_binlinearity() {
         assert!(a != Fq12::one());
         assert_eq!((a.pow(t)) * a, Fq12::one());
     }
+    let b_batch = pairing_batch(&sp_vec, &q_vec);
+    let c_batch = pairing_batch(&p_vec, &sq_vec);
+    assert_eq!(b_batch, c_batch);
 }
 
 #[test]
