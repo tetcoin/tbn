@@ -978,7 +978,6 @@ pub fn pairing(p: &G1, q: &G2) -> Fq12 {
 }
 
 pub fn pairing_batch(p_vec: &[G1], q_vec: &[G2]) -> Fq12 {
-
     let mut p_affines: Vec<AffineG<G1Params>> = vec![];
     let mut q_precomputes: Vec<G2Precomp> = vec![];
     for (p, q) in p_vec.into_iter().zip(q_vec.into_iter()) {
@@ -995,6 +994,9 @@ pub fn pairing_batch(p_vec: &[G1], q_vec: &[G2]) -> Fq12 {
             p_affines.push(p.to_affine().unwrap());
             q_precomputes.push(q.to_affine().unwrap().precompute());    
         }
+    }
+    if q_precomputes.len() == 0 {
+        return Fq12::one();
     }
     miller_loop_batch(&q_precomputes, &p_affines).final_exponentiation().expect("miller loop cannot produce zero")
 }
@@ -1106,7 +1108,35 @@ fn predefined_pair() {
 }
 
 #[test]
-fn test_bilinearity() {
+fn test_batch_bilinearity_empty() {
+    let p_vec : Vec<G1> = vec![];
+    let q_vec : Vec<G2> = vec![];
+    let r = pairing_batch(&p_vec, &q_vec);
+    assert_eq!(r, Fq12::one());
+}
+
+#[test]
+fn test_batch_bilinearity_one() {
+    use rand::{SeedableRng, StdRng};
+    let seed = [
+        0, 0, 0, 0, 0, 0, 64, 13, // 103245
+        0, 0, 0, 0, 0, 0, 176, 2, // 191922
+        0, 0, 0, 0, 0, 0, 0, 13, // 1293
+        0, 0, 0, 0, 0, 0, 96, 7u8, // 192103
+    ];
+    let mut rng = StdRng::from_seed(seed);
+    let p_vec : Vec<G1> = vec![G1::random(&mut rng)];
+    let q_vec : Vec<G2> = vec![G2::random(&mut rng)];
+    let s = Fr::random(&mut rng);
+    let sp_vec : Vec<G1> = vec![p_vec[0] * s];
+    let sq_vec : Vec<G2> = vec![q_vec[0] * s];
+    let b = pairing_batch(&sp_vec, &q_vec);
+    let c = pairing_batch(&p_vec, &sq_vec);
+    assert_eq!(b, c);
+}
+
+#[test]
+fn test_batch_bilinearity_fifty() {
     use rand::{SeedableRng, StdRng};
     let seed = [
         0, 0, 0, 0, 0, 0, 64, 13, // 103245
@@ -1131,6 +1161,30 @@ fn test_bilinearity() {
         q_vec.push(q);
         sq_vec.push(sq);
         p_vec.push(p);
+    }
+    let b_batch = pairing_batch(&sp_vec, &q_vec);
+    let c_batch = pairing_batch(&p_vec, &sq_vec);
+    assert_eq!(b_batch, c_batch);
+}
+
+#[test]
+fn test_bilinearity() {
+    use rand::{SeedableRng, StdRng};
+    let seed = [
+        0, 0, 0, 0, 0, 0, 64, 13, // 103245
+        0, 0, 0, 0, 0, 0, 176, 2, // 191922
+        0, 0, 0, 0, 0, 0, 0, 13, // 1293
+        0, 0, 0, 0, 0, 0, 96, 7u8, // 192103
+    ];
+    let mut rng = StdRng::from_seed(seed);
+
+    for _ in 0..50 {
+        let p = G1::random(&mut rng);
+        let q = G2::random(&mut rng);
+        let s = Fr::random(&mut rng);
+        let sp = p * s;
+        let sq = q * s;
+
         let a = pairing(&p, &q).pow(s);
         let b = pairing(&sp, &q);
         let c = pairing(&p, &sq);
@@ -1143,9 +1197,6 @@ fn test_bilinearity() {
         assert!(a != Fq12::one());
         assert_eq!((a.pow(t)) * a, Fq12::one());
     }
-    let b_batch = pairing_batch(&sp_vec, &q_vec);
-    let c_batch = pairing_batch(&p_vec, &sq_vec);
-    assert_eq!(b_batch, c_batch);
 }
 
 #[test]
