@@ -616,6 +616,16 @@ pub fn pairing(p: G1, q: G2) -> Gt {
     Gt(groups::pairing(&p.0, &q.0))
 }
 
+pub fn pairing_batch(pairs: &[(G1, G2)]) -> Gt {
+    let mut ps : Vec<groups::G1> = vec![];
+    let mut qs : Vec<groups::G2> = vec![];
+    for (p, q) in pairs {
+        ps.push(p.0);
+        qs.push(q.0);
+    }
+    Gt(groups::pairing_batch(&ps, &qs))
+}
+
 #[derive(Copy, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "rustc-serialize", derive(RustcDecodable, RustcEncodable))]
 #[repr(C)]
