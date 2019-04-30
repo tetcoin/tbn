@@ -684,7 +684,7 @@ fn miller_loop_batch(g2_precomputes: &Vec<G2Precomp>, g1_vec: &Vec<AffineG<G1Par
             found_one = i;
             continue;
         }
-
+        
         f = f.squared();
         for (g2_precompute, g1) in g2_precomputes.iter().zip(g1_vec.iter()) {
             let c = &g2_precompute.coeffs[idx];
@@ -977,10 +977,10 @@ pub fn pairing(p: &G1, q: &G2) -> Fq12 {
     }
 }
 
-pub fn pairing_batch(p_vec: &[G1], q_vec: &[G2]) -> Fq12 {
+pub fn pairing_batch(ps: &[G1], qs: &[G2]) -> Fq12 {
     let mut p_affines: Vec<AffineG<G1Params>> = vec![];
     let mut q_precomputes: Vec<G2Precomp> = vec![];
-    for (p, q) in p_vec.into_iter().zip(q_vec.into_iter()) {
+    for (p, q) in ps.into_iter().zip(qs.into_iter()) {
 
         let p_affine = p.to_affine();
         let q_affine = q.to_affine();
