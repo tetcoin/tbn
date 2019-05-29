@@ -7,6 +7,13 @@ use rand::Rng;
 #[cfg(feature = "rustc-serialize")]
 use rustc_serialize::{Decodable, Decoder, Encodable, Encoder};
 
+// This is the NAF version of ate_loop_count. Entries are all mod 4, so 3 = -1
+// n.b. ate_loop_count = 0x19d797039be763ba8
+//                     = 11001110101111001011100000011100110111110011101100011101110101000
+//       (naf version) = 11010003030003010300300000100301003000030100030300100030030101000
+// We skip the first element (1) as we would need to skip over it in the main loop
+const ATE_LOOP_COUNT_NAF : [u8; 64] = [1,0,1,0,0,0,3,0,3,0,0,0,3,0,1,0,3,0,0,3,0,0,0,0,0,1,0,0,3,0,1,0,0,3,0,0,0,0,3,0,1,0,0,0,3,0,3,0,0,1,0,0,0,3,0,0,3,0,1,0,1,0,0,0];
+
 pub trait GroupElement
     : Sized
     + Copy
@@ -575,16 +582,6 @@ fn two_inv() -> Fq {
     ])
 }
 
-// This is the NAF version of ate_loop_count. Entries are all mod 4, so 3 = -1
-// n.b. ate_loop_count = 0x19d797039be763ba8
-//                     = 11001110101111001011100000011100110111110011101100011101110101000
-//       (naf version) = 11010003030003010300300000100301003000030100030300100030030101000
-// We skip the first element (1) as we would need to skip over it in the main loop
-#[inline]
-fn ate_loop_count_naf() -> Vec<u8> {
-    vec![1,0,1,0,0,0,3,0,3,0,0,0,3,0,1,0,3,0,0,3,0,0,0,0,0,1,0,0,3,0,1,0,0,3,0,0,0,0,3,0,1,0,0,0,3,0,3,0,0,1,0,0,0,3,0,0,3,0,1,0,1,0,0,0]
-}
-
 #[inline]
 fn twist_mul_by_q_x() -> Fq2 {
     Fq2::new(
@@ -640,14 +637,13 @@ impl G2Precomp {
 
         let mut idx = 0;
 
-        for i in ate_loop_count_naf() {
-
+        for i in ATE_LOOP_COUNT_NAF.iter() {
             let c = &self.coeffs[idx];
             idx += 1;
             f = f.squared()
                 .mul_by_024(c.ell_0, c.ell_vw.scale(g1.y), c.ell_vv.scale(g1.x));
 
-            if i != 0 {
+            if *i != 0 {
                 let c = &self.coeffs[idx];
                 idx += 1;
                 f = f.mul_by_024(c.ell_0, c.ell_vw.scale(g1.y), c.ell_vv.scale(g1.x));
@@ -670,15 +666,14 @@ fn miller_loop_batch(g2_precomputes: &Vec<G2Precomp>, g1_vec: &Vec<AffineG<G1Par
 
     let mut idx = 0;
 
-    for i in ate_loop_count_naf() {
-
+    for i in ATE_LOOP_COUNT_NAF.iter() {
         f = f.squared();
         for (g2_precompute, g1) in g2_precomputes.iter().zip(g1_vec.iter()) {
             let c = &g2_precompute.coeffs[idx];
             f = f.mul_by_024(c.ell_0, c.ell_vw.scale(g1.y), c.ell_vv.scale(g1.x));
         }
         idx += 1;
-        if i != 0 {
+        if *i != 0 {
             for (g2_precompute, g1) in g2_precomputes.iter().zip(g1_vec.iter()) {
                 let c = &g2_precompute.coeffs[idx];
                 f = f.mul_by_024(c.ell_0, c.ell_vw.scale(g1.y), c.ell_vv.scale(g1.x));
@@ -764,14 +759,13 @@ impl AffineG<G2Params> {
         let mut coeffs = Vec::with_capacity(102);
 
         let q_neg = self.neg();
-        for i in ate_loop_count_naf() {
-
+        for i in ATE_LOOP_COUNT_NAF.iter() {
             coeffs.push(r.doubling_step_for_flipped_miller_loop());
 
-            if i == 1 {
+            if *i == 1 {
                 coeffs.push(r.mixed_addition_step_for_flipped_miller_loop(self));
             }
-            if i == 3 {
+            if *i == 3 {
                 coeffs.push(r.mixed_addition_step_for_flipped_miller_loop(&q_neg));
             }
         }
