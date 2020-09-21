@@ -14,8 +14,8 @@ pub mod arith;
 mod fields;
 mod groups;
 
-use fields::FieldElement;
-use groups::{GroupElement, G1Params, G2Params, GroupParams};
+use crate::fields::FieldElement;
+use crate::groups::{GroupElement, G1Params, G2Params, GroupParams};
 
 use alloc::vec::Vec;
 use core::ops::{Add, Mul, Neg, Sub};
@@ -129,7 +129,7 @@ impl From<FieldError> for CurveError {
     }
 }
 
-pub use groups::Error as GroupError;
+pub use crate::groups::Error as GroupError;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "rustc-serialize", derive(RustcDecodable, RustcEncodable))]

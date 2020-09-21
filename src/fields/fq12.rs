@@ -1,7 +1,7 @@
 use core::ops::{Add, Mul, Neg, Sub};
 use rand::Rng;
-use fields::{const_fq, FieldElement, Fq, Fq2, Fq6};
-use arith::U256;
+use crate::fields::{const_fq, FieldElement, Fq, Fq2, Fq6};
+use crate::arith::U256;
 
 fn frobenius_coeffs_c1(power: usize) -> Fq2 {
     match power % 12 {
