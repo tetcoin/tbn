@@ -1,5 +1,5 @@
-use fields::{const_fq, FieldElement, Fq, Fq12, Fq2, Fr, fq2_nonresidue};
-use arith::U256;
+use crate::fields::{const_fq, FieldElement, Fq, Fq12, Fq2, Fr, fq2_nonresidue};
+use crate::arith::U256;
 use core::{fmt, ops::{Add, Mul, Neg, Sub}};
 use rand::Rng;
 use alloc::vec::Vec;
@@ -238,7 +238,7 @@ impl<P: GroupParams> Encodable for G<P> {
             l.encode(s)
         } else {
             let l: u8 = 4;
-            try!(l.encode(s));
+            l.encode(s)?;
             self.to_affine().unwrap().encode(s)
         }
     }
@@ -247,8 +247,8 @@ impl<P: GroupParams> Encodable for G<P> {
 #[cfg(feature = "rustc-serialize")]
 impl<P: GroupParams> Encodable for AffineG<P> {
     fn encode<S: Encoder>(&self, s: &mut S) -> Result<(), S::Error> {
-        try!(self.x.encode(s));
-        try!(self.y.encode(s));
+        self.x.encode(s)?;
+        self.y.encode(s)?;
 
         Ok(())
     }
@@ -257,11 +257,11 @@ impl<P: GroupParams> Encodable for AffineG<P> {
 #[cfg(feature = "rustc-serialize")]
 impl<P: GroupParams> Decodable for G<P> {
     fn decode<S: Decoder>(s: &mut S) -> Result<G<P>, S::Error> {
-        let l = try!(u8::decode(s));
+        let l = u8::decode(s)?;
         if l == 0 {
             Ok(G::zero())
         } else if l == 4 {
-            Ok(try!(AffineG::decode(s)).to_jacobian())
+            Ok(AffineG::decode(s)?.to_jacobian())
         } else {
             Err(s.error("invalid leading byte for uncompressed group element"))
         }
@@ -271,8 +271,8 @@ impl<P: GroupParams> Decodable for G<P> {
 #[cfg(feature = "rustc-serialize")]
 impl<P: GroupParams> Decodable for AffineG<P> {
     fn decode<S: Decoder>(s: &mut S) -> Result<AffineG<P>, S::Error> {
-        let x = try!(P::Base::decode(s));
-        let y = try!(P::Base::decode(s));
+        let x = P::Base::decode(s)?;
+        let y = P::Base::decode(s)?;
 
         Self::new(x, y).map_err(|e| match e {
             Error::NotOnCurve => s.error("point is not on the curve"),
@@ -696,7 +696,7 @@ pub fn miller_loop_batch(g2_precomputes: &Vec<G2Precomp>, g1_vec: &Vec<AffineG<G
 
 #[test]
 fn test_miller_loop() {
-    use fields::Fq6;
+    use crate::fields::Fq6;
 
     let g1 = G1::one()
         * Fr::from_str(
@@ -971,7 +971,7 @@ pub fn pairing_batch(ps: &[G1], qs: &[G2]) -> Fq12 {
 
         if exists {
             p_affines.push(p.to_affine().unwrap());
-            q_precomputes.push(q.to_affine().unwrap().precompute());    
+            q_precomputes.push(q.to_affine().unwrap().precompute());
         }
     }
     if q_precomputes.len() == 0 {
@@ -982,7 +982,7 @@ pub fn pairing_batch(ps: &[G1], qs: &[G2]) -> Fq12 {
 
 #[test]
 fn test_reduced_pairing() {
-    use fields::Fq6;
+    use crate::fields::Fq6;
 
     let g1 = G1::one()
         * Fr::from_str(
@@ -1129,7 +1129,7 @@ fn test_batch_bilinearity_fifty() {
     let mut q_vec : Vec<G2> = Vec::new();
     let mut sp_vec : Vec<G1> = Vec::new();
     let mut sq_vec : Vec<G2> = Vec::new();
-    
+
     for _ in 0..50 {
         let p = G1::random(&mut rng);
         let q = G2::random(&mut rng);

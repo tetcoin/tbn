@@ -1,5 +1,5 @@
 use super::GroupElement;
-use fields::{FieldElement, Fr};
+use crate::fields::{FieldElement, Fr};
 use rand::Rng;
 
 fn random_test_addition<G: GroupElement, R: Rng>(rng: &mut R) {

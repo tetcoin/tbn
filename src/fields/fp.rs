@@ -1,8 +1,8 @@
 use alloc::vec::Vec;
 use core::ops::{Add, Mul, Neg, Sub};
 use rand::Rng;
-use fields::FieldElement;
-use arith::{U256, U512};
+use crate::fields::FieldElement;
+use crate::arith::{U256, U512};
 
 #[cfg(feature = "rustc-serialize")]
 use rustc_serialize::{Decodable, Decoder, Encodable, Encoder};
@@ -34,7 +34,7 @@ macro_rules! field_impl {
         #[cfg(feature = "rustc-serialize")]
         impl Decodable for $name {
             fn decode<S: Decoder>(s: &mut S) -> Result<$name, S::Error> {
-                $name::new(try!(U256::decode(s))).ok_or_else(|| s.error("integer is not less than modulus"))
+                $name::new(U256::decode(s)?).ok_or_else(|| s.error("integer is not less than modulus"))
             }
         }
 
