@@ -1,4 +1,4 @@
-bn crate performing 20000 pairing operations
+tbn crate performing 20000 pairing operations
 
 real	3m28.831s
 user	3m28.797s

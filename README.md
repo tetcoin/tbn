@@ -1,4 +1,4 @@
-# bn [![Crates.io](https://img.shields.io/crates/v/bn.svg)](https://crates.io/crates/bn) [![Build status](https://api.travis-ci.org/zcash/bn.svg)](https://travis-ci.org/zcash/bn)
+# tbn [![Crates.io](https://img.shields.io/crates/v/tbn.svg)](https://crates.io/crates/tbn) [![Build status](https://api.travis-ci.org/tetcoin/tbn.svg)](https://travis-ci.org/tetcoin/tbn)
 
 This is a [pairing cryptography](https://en.wikipedia.org/wiki/Pairing-based_cryptography) library written in pure Rust. It makes use of the Barreto-Naehrig (BN) curve construction from [[BCTV2015]](https://eprint.iacr.org/2013/879.pdf) to provide two cyclic groups **G<sub>1</sub>** and **G<sub>2</sub>**, with an efficient bilinear pairing:
 
@@ -10,17 +10,17 @@ This library, like other pairing cryptography libraries implementing this constr
 
 ## Usage
 
-Add the `bn` crate to your dependencies in `Cargo.toml`...
+Add the `tbn` crate to your dependencies in `Cargo.toml`...
 
 ```toml
 [dependencies]
-bn = "0.4.2"
+tbn = "0.4.2"
 ```
 
 ...and add an `extern crate` declaration to your crate root:
 
 ```rust
-extern crate bn;
+extern crate tbn;
 ```
 
 ## API
@@ -66,7 +66,7 @@ Licensed under either of
 
 at your option.
 
-Copyright 2016 [Zcash Electric Coin Company](https://z.cash/). The Zcash Company promises to maintain the "bn" crate on crates.io under this MIT/Apache-2.0 dual license.
+Copyright 2016 [Zcash Electric Coin Company](https://z.cash/). The Zcash Company promises to maintain the "tbn" crate on crates.io under this MIT/Apache-2.0 dual license.
 
 ### Authors
 

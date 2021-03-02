@@ -1,6 +1,6 @@
-extern crate bn;
+extern crate tbn;
 
-use bn::*;
+use tbn::*;
 
 fn main() {
     let mut a = G1::one();

@@ -1,12 +1,12 @@
 [package]
-name = "bn"
+name = "tbn"
 version = "0.4.4"
 authors = ["Sean Bowe <ewillbefull@gmail.com>"]
 description = "Pairing cryptography with the Barreto-Naehrig curve"
 keywords = ["pairing","crypto","cryptography"]
 readme = "README.md"
-homepage = "https://github.com/zcash/bn"
-repository = "https://github.com/zcash/bn"
+homepage = "https://github.com/tetcoin/tbn"
+repository = "https://github.com/tetcoin/tbn"
 license = "MIT OR Apache-2.0"
 
 [features]
